@@ -27,9 +27,10 @@ for img, _, _ in tqdm(dev_loader):
         s = coords2str(coords)
         predictions.append(s)
 
-test = pd.read_csv(PATH + 'sample_submission.csv')
-test['PredictionString'] = predictions
-test.to_csv('./prediction_for_validation_data.csv', index=False)
+valid_df = pd.DataFrame()
+valid_df['ImageId'] = df_dev['ImageId']
+valid_df['PredictionString'] = predictions
+valid_df.to_csv('./prediction_for_validation_data.csv', index=False)
 
 
 def expand_df(df, PredictionStringCols):
