@@ -11,6 +11,25 @@ from inspect import signature
 import matplotlib.pyplot as plt
 from multiprocessing import Pool
 
+from network import *
+
+predictions = []
+
+model.load_state_dict(torch.load('./model.pth'))
+model.eval()
+
+for img, _, _ in tqdm(dev_loader):
+    with torch.no_grad():
+        output = model(img.to(device))
+    output = output.data.cpu().numpy()
+    for out in output:
+        coords = extract_coords(out)
+        s = coords2str(coords)
+        predictions.append(s)
+
+test = pd.read_csv(PATH + 'sample_submission.csv')
+test['PredictionString'] = predictions
+test.to_csv('./prediction_for_validation_data.csv', index=False)
 
 
 def expand_df(df, PredictionStringCols):
@@ -125,7 +144,7 @@ def check_match(idx):
     return result_flg, scores
 
 
-validation_prediction = './autonomous-driving-validation-data/prediction_for_validation_data.csv'
+validation_prediction = './prediction_for_validation_data.csv'
 
 valid_df = pd.read_csv(validation_prediction)
 expanded_valid_df = expand_df(valid_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
@@ -148,12 +167,9 @@ for result_flg, scores in p.imap(check_match, range(10)):
         n_tp = np.sum(result_flg)
         recall = n_tp / n_gt
         ap = average_precision_score(result_flg, scores) * recall
-        print_pr_curve(result_flg, scores, recall)
+        # print_pr_curve(result_flg, scores, recall)
     else:
         ap = 0
     ap_list.append(ap)
 map = np.mean(ap_list)
 print('map:', map)
-
-
-
