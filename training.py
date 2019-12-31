@@ -79,7 +79,7 @@ def training(model, optimizer, scheduler, n_epoch):
     min_loss = float('inf')
     best_model_wts = copy.deepcopy(model.state_dict())
 
-    for epoch in n_epoch:
+    for epoch in range(n_epoch):
         train_model(model, epoch, scheduler, optimizer)
 
 
