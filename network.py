@@ -58,9 +58,9 @@ class MyUNet(nn.Module):
 
 def get_model(model_name):
     if model_name == 'basic':
-        return MyUNet(Config.N_CLASS)
+        return MyUNet(Config.N_CLASS).to(Config.device)
     if model_name == 'basic_unet':
-        return UNet(3, Config.N_CLASS)
+        return UNet(3, Config.N_CLASS).to(Config.device)
 
 
 if __name__ == '__main__':
