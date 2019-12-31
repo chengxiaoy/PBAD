@@ -65,9 +65,9 @@ def get_model(model_name):
 
 if __name__ == '__main__':
     x = torch.randn(4, 3, 320, 1024)
-    model = get_model('basic')
-    y = model(x)
-    print(y.size())
+    # model = get_model('basic')
+    # y = model(x)
+    # print(y.size())
 
     model = get_model('basic_unet')
     y = model(x)

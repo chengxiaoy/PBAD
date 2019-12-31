@@ -10,6 +10,6 @@ class Config():
     DATA_PATH = './pku-autonomous-driving/'
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_name = "basic"
-    N_EPOCH = 10
+    N_EPOCH = 20
     expriment_id = 1
     model_path = str(expriment_id) + '_model.pth'

@@ -4,6 +4,7 @@ from config import Config
 from evaluate import get_map
 import copy
 from predict import predict
+from torch.optim.lr_scheduler import ExponentialLR, ReduceLROnPlateau, MultiStepLR
 
 
 # Gets the GPU if there is one, otherwise the cpu
@@ -30,7 +31,6 @@ def criterion(prediction, mask, regr, size_average=True):
 
 def train_model(model, epoch, scheduler, optimizer):
     model.train()
-
     epoch_loss = 0
 
     for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(tqdm(train_loader)):
@@ -48,9 +48,8 @@ def train_model(model, epoch, scheduler, optimizer):
         epoch_loss += loss.item()
 
     epoch_loss = epoch_loss / len(train_loader)
-    print('Train Epoch: {} \tLR: {:.6f}\tLoss: {}'.format(
+    print('Train Epoch: {} \tLoss: {}'.format(
         epoch,
-        exp_lr_scheduler.get_lr()[0],
         epoch_loss))
 
     return epoch_loss
@@ -81,9 +80,8 @@ def training(model, optimizer, scheduler, n_epoch):
 
     for epoch in range(n_epoch):
         train_model(model, epoch, scheduler, optimizer)
-
-
         valid_loss, MAP = evaluate_model(model)
+        scheduler.step()
         if valid_loss < min_loss:
             min_loss = valid_loss
             torch.save(model.state_dict(), Config.model_path)
@@ -95,7 +93,18 @@ def training(model, optimizer, scheduler, n_epoch):
 if __name__ == '__main__':
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5, verbose=True)
+    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
+    predict(model)
 
-    model = training(model, optimizer, scheduler=exp_lr_scheduler, n_epoch=Config.N_EPOCH)
+    Config.expriment_id = 2
+    Config.model_name = "basic_unet"
+    Config.MODEL_SCALE = 1
+
+    model = get_model(Config.model_name)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5, verbose=True)
+    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
     predict(model)

@@ -3,8 +3,6 @@ from network import *
 from config import Config
 
 
-
-
 def predict(model):
     predictions = []
     test_loader = DataLoader(dataset=test_dataset, batch_size=4, shuffle=False, num_workers=4)
@@ -21,4 +19,4 @@ def predict(model):
 
     test = pd.read_csv(Config.DATA_PATH + 'sample_submission.csv')
     test['PredictionString'] = predictions
-    test.to_csv('predictions.csv', index=False)
+    test.to_csv(str(Config.expriment_id) + '_predictions.csv', index=False)
