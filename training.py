@@ -44,7 +44,6 @@ def train_model(model, epoch, scheduler, optimizer):
 
         loss.backward()
         optimizer.step()
-        scheduler.step()
         epoch_loss += loss.item()
 
     epoch_loss = epoch_loss / len(train_loader)
