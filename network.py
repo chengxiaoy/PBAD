@@ -1,7 +1,35 @@
 from efficientnet_pytorch import EfficientNet
+# from car_dataset import *
+import numpy as np  # linear algebra
+import pandas as pd  # data processing, CSV file I/O (e.g. pd.read_csv)
+import cv2
+from tqdm import tqdm  # _notebook as tqdm
+import matplotlib.pyplot as plt
+import seaborn as sns
+from functools import reduce
+import os
+from scipy.optimize import minimize
+import plotly.express as px
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.optim import lr_scheduler
+from torch.utils.data import Dataset, DataLoader
+from torchvision import models
+from torchvision import transforms, utils
+
+from math import sin, cos
 from car_dataset import *
 
-
+IMG_WIDTH = 1024
+IMG_HEIGHT = IMG_WIDTH // 16 * 5
+MODEL_SCALE = 8
 
 class double_conv(nn.Module):
     '''(conv => BN => ReLU) * 2'''
@@ -72,21 +100,22 @@ class MyUNet(nn.Module):
         super(MyUNet, self).__init__()
         self.base_model = EfficientNet.from_pretrained('efficientnet-b0')
 
-        self.conv0 = double_conv(5, 64)
+        self.conv0 = double_conv(3, 64)
         self.conv1 = double_conv(64, 128)
         self.conv2 = double_conv(128, 512)
         self.conv3 = double_conv(512, 1024)
 
         self.mp = nn.MaxPool2d(2)
 
-        self.up1 = up(1282 + 1024, 512)
+        self.up1 = up(1280 + 1024, 512)
         self.up2 = up(512 + 512, 256)
         self.outc = nn.Conv2d(256, n_classes, 1)
 
     def forward(self, x):
         batch_size = x.shape[0]
         mesh1 = get_mesh(batch_size, x.shape[2], x.shape[3])
-        x0 = torch.cat([x, mesh1], 1)
+        # x0 = torch.cat([x, mesh1], 1)
+        x0 = x
         x1 = self.mp(self.conv0(x0))
         x2 = self.mp(self.conv1(x1))
         x3 = self.mp(self.conv2(x2))
@@ -99,7 +128,7 @@ class MyUNet(nn.Module):
 
         # Add positional info
         mesh2 = get_mesh(batch_size, feats.shape[2], feats.shape[3])
-        feats = torch.cat([feats, mesh2], 1)
+        # feats = torch.cat([feats, mesh2], 1)
 
         x = self.up1(feats, x4)
         x = self.up2(x, x3)
@@ -116,3 +145,7 @@ n_epochs = 10
 model = MyUNet(8).to(device)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=max(n_epochs, 10) * len(train_loader) // 3, gamma=0.1)
+
+if __name__ == '__main__':
+    mesh = get_mesh(16, 400, 400)
+    print(mesh.shape)

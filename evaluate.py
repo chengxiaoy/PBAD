@@ -146,11 +146,9 @@ def check_match(idx):
 
 
 validation_prediction = './prediction_for_validation_data.csv'
-
 valid_df = pd.read_csv(validation_prediction)
 expanded_valid_df = expand_df(valid_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
 valid_df = valid_df.fillna('')
-
 train_df = pd.read_csv('./pku-autonomous-driving/train.csv')
 train_df = train_df[train_df.ImageId.isin(valid_df.ImageId.unique())]
 # data description page says, The pose information is formatted as

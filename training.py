@@ -1,4 +1,5 @@
 from network import *
+from car_dataset import *
 
 
 def criterion(prediction, mask, regr, size_average=True):
