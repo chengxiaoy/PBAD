@@ -12,25 +12,8 @@ import matplotlib.pyplot as plt
 from multiprocessing import Pool
 
 from network import *
-
-predictions = []
-
-model.load_state_dict(torch.load('./model.pth'))
-model.eval()
-
-for img, _, _ in tqdm(dev_loader):
-    with torch.no_grad():
-        output = model(img.to(device))
-    output = output.data.cpu().numpy()
-    for out in output:
-        coords = extract_coords(out)
-        s = coords2str(coords)
-        predictions.append(s)
-
-valid_df = pd.DataFrame()
-valid_df['ImageId'] = df_dev['ImageId']
-valid_df['PredictionString'] = predictions
-valid_df.to_csv('./prediction_for_validation_data.csv', index=False)
+from tqdm import tqdm
+from car_dataset import *
 
 
 def expand_df(df, PredictionStringCols):
@@ -110,7 +93,8 @@ thres_tr_list = [0.1, 0.09, 0.08, 0.07, 0.06, 0.05, 0.04, 0.03, 0.02, 0.01]
 thres_ro_list = [50, 45, 40, 35, 30, 25, 20, 15, 10, 5]
 
 
-def check_match(idx):
+def check_match(arg):
+    idx, train_df, valid_df = arg
     keep_gt = False
     thre_tr_dist = thres_tr_list[idx]
     thre_ro_dist = thres_ro_list[idx]
@@ -145,30 +129,50 @@ def check_match(idx):
     return result_flg, scores
 
 
-validation_prediction = './prediction_for_validation_data.csv'
-valid_df = pd.read_csv(validation_prediction)
-expanded_valid_df = expand_df(valid_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
-valid_df = valid_df.fillna('')
-train_df = pd.read_csv('./pku-autonomous-driving/train.csv')
-train_df = train_df[train_df.ImageId.isin(valid_df.ImageId.unique())]
-# data description page says, The pose information is formatted as
-# model type, yaw, pitch, roll, x, y, z
-# but it doesn't, and it should be
-# model type, pitch, yaw, roll, x, y, z
-expanded_train_df = expand_df(train_df, ['model_type', 'pitch', 'yaw', 'roll', 'x', 'y', 'z'])
+def get_map(model):
+    predictions = []
 
-max_workers = 10
-n_gt = len(expanded_train_df)
-ap_list = []
-p = Pool(processes=max_workers)
-for result_flg, scores in p.imap(check_match, range(10)):
-    if np.sum(result_flg) > 0:
-        n_tp = np.sum(result_flg)
-        recall = n_tp / n_gt
-        ap = average_precision_score(result_flg, scores) * recall
-        # print_pr_curve(result_flg, scores, recall)
-    else:
-        ap = 0
-    ap_list.append(ap)
-map = np.mean(ap_list)
-print('map:', map)
+    for img, _, _ in tqdm(valid_loader):
+        with torch.no_grad():
+            output = model(img.to(Config.device))
+        output = output.data.cpu().numpy()
+        for out in output:
+            coords = extract_coords(out)
+            s = coords2str(coords)
+            predictions.append(s)
+
+    valid_df = pd.DataFrame()
+    valid_df['ImageId'] = df_valid['ImageId']
+    valid_df['PredictionString'] = predictions
+
+    expanded_valid_df = expand_df(valid_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
+    valid_df = valid_df.fillna('')
+    train_df = pd.read_csv('./pku-autonomous-driving/train.csv')
+    train_df = train_df[train_df.ImageId.isin(valid_df.ImageId.unique())]
+    # data description page says, The pose information is formatted as
+    # model type, yaw, pitch, roll, x, y, z
+    # but it doesn't, and it should be
+    # model type, pitch, yaw, roll, x, y, z
+    expanded_train_df = expand_df(train_df, ['model_type', 'pitch', 'yaw', 'roll', 'x', 'y', 'z'])
+
+    max_workers = 10
+    n_gt = len(expanded_train_df)
+    ap_list = []
+    p = Pool(processes=max_workers)
+
+    args = []
+    for i in range(10):
+        args.append([i, train_df.copy(), valid_df.copy()])
+
+    for result_flg, scores in p.map(check_match, args):
+        if np.sum(result_flg) > 0:
+            n_tp = np.sum(result_flg)
+            recall = n_tp / n_gt
+            ap = average_precision_score(result_flg, scores) * recall
+            # print_pr_curve(result_flg, scores, recall)
+        else:
+            ap = 0
+        ap_list.append(ap)
+    map = np.mean(ap_list)
+
+    return map

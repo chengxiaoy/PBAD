@@ -23,16 +23,15 @@ from torchvision import models
 from torchvision import transforms, utils
 
 from math import sin, cos
-
-IMG_WIDTH = 1024
-IMG_HEIGHT = IMG_WIDTH // 16 * 5
-MODEL_SCALE = 8
+from config import Config
 
 # From camera.zip
 camera_matrix = np.array([[2304.5479, 0, 1686.2379],
                           [0, 2305.8757, 1354.9849],
                           [0, 0, 1]], dtype=np.float32)
 camera_matrix_inv = np.linalg.inv(camera_matrix)
+
+
 
 
 def imread(path, fast_mode=False):
@@ -62,32 +61,6 @@ def str2coords(s, names=['id', 'yaw', 'pitch', 'roll', 'x', 'y', 'z']):
         if 'id' in coords[-1]:
             coords[-1]['id'] = int(coords[-1]['id'])
     return coords
-
-
-PATH = './pku-autonomous-driving/'
-os.listdir(PATH)
-train = pd.read_csv(PATH + 'train.csv')
-test = pd.read_csv(PATH + 'sample_submission.csv')
-
-points_df = pd.DataFrame()
-for col in ['x', 'y', 'z', 'yaw', 'pitch', 'roll']:
-    arr = []
-    for ps in train['PredictionString']:
-        coords = str2coords(ps)
-        arr += [c[col] for c in coords]
-    points_df[col] = arr
-
-print('len(points_df)', len(points_df))
-points_df.head()
-
-xzy_slope = LinearRegression()
-X = points_df[['x', 'z']]
-y = points_df['y']
-xzy_slope.fit(X, y)
-print('MAE with x:', mean_absolute_error(y, xzy_slope.predict(X)))
-
-img = imread(PATH + 'train_images/ID_8a6e65317' + '.jpg')
-IMG_SHAPE = img.shape
 
 
 def get_img_coords(s):
@@ -125,51 +98,41 @@ def _regr_preprocess(regr_dict, flip=False):
     return regr_dict
 
 
-def _regr_back(regr_dict):
-    for name in ['x', 'y', 'z']:
-        regr_dict[name] = regr_dict[name] * 100
-    regr_dict['roll'] = rotate(regr_dict['roll'], -np.pi)
-
-    pitch_sin = regr_dict['pitch_sin'] / np.sqrt(regr_dict['pitch_sin'] ** 2 + regr_dict['pitch_cos'] ** 2)
-    pitch_cos = regr_dict['pitch_cos'] / np.sqrt(regr_dict['pitch_sin'] ** 2 + regr_dict['pitch_cos'] ** 2)
-    regr_dict['pitch'] = np.arccos(pitch_cos) * np.sign(pitch_sin)
-    return regr_dict
-
-
 def preprocess_image(img, flip=False):
     img = img[img.shape[0] // 2:]
     bg = np.ones_like(img) * img.mean(1, keepdims=True).astype(img.dtype)
     bg = bg[:, :img.shape[1] // 6]
     img = np.concatenate([bg, img, bg], 1)
-    img = cv2.resize(img, (IMG_WIDTH, IMG_HEIGHT))
+    img = cv2.resize(img, (Config.IMG_WIDTH, Config.IMG_HEIGHT))
     if flip:
         img = img[:, ::-1]
     return (img / 255).astype('float32')
 
 
-def get_mask_and_regr(img, labels, flip=False):
-    mask = np.zeros([IMG_HEIGHT // MODEL_SCALE, IMG_WIDTH // MODEL_SCALE], dtype='float32')
-    regr_names = ['x', 'y', 'z', 'yaw', 'pitch', 'roll']
-    regr = np.zeros([IMG_HEIGHT // MODEL_SCALE, IMG_WIDTH // MODEL_SCALE, 7], dtype='float32')
-    coords = str2coords(labels)
-    xs, ys = get_img_coords(labels)
-    for x, y, regr_dict in zip(xs, ys, coords):
-        x, y = y, x
-        x = (x - img.shape[0] // 2) * IMG_HEIGHT / (img.shape[0] // 2) / MODEL_SCALE
-        x = np.round(x).astype('int')
-        y = (y + img.shape[1] // 6) * IMG_WIDTH / (img.shape[1] * 4 / 3) / MODEL_SCALE
-        y = np.round(y).astype('int')
-        if x >= 0 and x < IMG_HEIGHT // MODEL_SCALE and y >= 0 and y < IMG_WIDTH // MODEL_SCALE:
-            mask[x, y] = 1
-            regr_dict = _regr_preprocess(regr_dict, flip)
-            regr[x, y] = [regr_dict[n] for n in sorted(regr_dict)]
-    if flip:
-        mask = np.array(mask[:, ::-1])
-        regr = np.array(regr[:, ::-1])
-    return mask, regr
-
-
 DISTANCE_THRESH_CLEAR = 2
+
+train = pd.read_csv(Config.DATA_PATH + 'train.csv')
+test = pd.read_csv(Config.DATA_PATH + 'sample_submission.csv')
+
+points_df = pd.DataFrame()
+for col in ['x', 'y', 'z', 'yaw', 'pitch', 'roll']:
+    arr = []
+    for ps in train['PredictionString']:
+        coords = str2coords(ps)
+        arr += [c[col] for c in coords]
+    points_df[col] = arr
+
+print('len(points_df)', len(points_df))
+points_df.head()
+
+xzy_slope = LinearRegression()
+X = points_df[['x', 'z']]
+y = points_df['y']
+xzy_slope.fit(X, y)
+print('MAE with x:', mean_absolute_error(y, xzy_slope.predict(X)))
+
+img = imread(Config.DATA_PATH + 'train_images/ID_8a6e65317' + '.jpg')
+IMG_SHAPE = img.shape
 
 
 def convert_3d_to_2d(x, y, z, fx=2304.5479, fy=2305.8757, cx=1686.2379, cy=1354.9849):
@@ -184,13 +147,24 @@ def optimize_xy(r, c, x0, y0, z0, flipped=False):
         slope_err = (xzy_slope.predict([[xx, z]])[0] - y) ** 2
         x, y = convert_3d_to_2d(x, y, z)
         y, x = x, y
-        x = (x - IMG_SHAPE[0] // 2) * IMG_HEIGHT / (IMG_SHAPE[0] // 2) / MODEL_SCALE
-        y = (y + IMG_SHAPE[1] // 6) * IMG_WIDTH / (IMG_SHAPE[1] * 4 / 3) / MODEL_SCALE
+        x = (x - IMG_SHAPE[0] // 2) * Config.IMG_HEIGHT / (IMG_SHAPE[0] // 2) / Config.MODEL_SCALE
+        y = (y + IMG_SHAPE[1] // 6) * Config.IMG_WIDTH / (IMG_SHAPE[1] * 4 / 3) / Config.MODEL_SCALE
         return max(0.2, (x - r) ** 2 + (y - c) ** 2) + max(0.4, slope_err)
 
     res = minimize(distance_fn, [x0, y0, z0], method='Powell')
     x_new, y_new, z_new = res.x
     return x_new, y_new, z_new
+
+
+def _regr_back(regr_dict):
+    for name in ['x', 'y', 'z']:
+        regr_dict[name] = regr_dict[name] * 100
+    regr_dict['roll'] = rotate(regr_dict['roll'], -np.pi)
+
+    pitch_sin = regr_dict['pitch_sin'] / np.sqrt(regr_dict['pitch_sin'] ** 2 + regr_dict['pitch_cos'] ** 2)
+    pitch_cos = regr_dict['pitch_cos'] / np.sqrt(regr_dict['pitch_sin'] ** 2 + regr_dict['pitch_cos'] ** 2)
+    regr_dict['pitch'] = np.arccos(pitch_cos) * np.sign(pitch_sin)
+    return regr_dict
 
 
 def clear_duplicates(coords):
@@ -232,10 +206,34 @@ def coords2str(coords, names=['yaw', 'pitch', 'roll', 'x', 'y', 'z', 'confidence
     return ' '.join(s)
 
 
+def get_mask_and_regr(img, labels, flip=False):
+    mask = np.zeros([Config.IMG_HEIGHT // Config.MODEL_SCALE, Config.IMG_WIDTH // Config.MODEL_SCALE], dtype='float32')
+    regr_names = ['x', 'y', 'z', 'yaw', 'pitch', 'roll']
+    regr = np.zeros(
+        [Config.IMG_HEIGHT // Config.MODEL_SCALE, Config.IMG_WIDTH // Config.MODEL_SCALE, Config.N_CLASS - 1],
+        dtype='float32')
+    coords = str2coords(labels)
+    xs, ys = get_img_coords(labels)
+    for x, y, regr_dict in zip(xs, ys, coords):
+        x, y = y, x
+        x = (x - img.shape[0] // 2) * Config.IMG_HEIGHT / (img.shape[0] // 2) / Config.MODEL_SCALE
+        x = np.round(x).astype('int')
+        y = (y + img.shape[1] // 6) * Config.IMG_WIDTH / (img.shape[1] * 4 / 3) / Config.MODEL_SCALE
+        y = np.round(y).astype('int')
+        if 0 <= x < Config.IMG_HEIGHT // Config.MODEL_SCALE and 0 <= y < Config.IMG_WIDTH // Config.MODEL_SCALE:
+            mask[x, y] = 1
+            regr_dict = _regr_preprocess(regr_dict, flip)
+            regr[x, y] = [regr_dict[n] for n in sorted(regr_dict)]
+    if flip:
+        mask = np.array(mask[:, ::-1])
+        regr = np.array(regr[:, ::-1])
+    return mask, regr
+
+
 if __name__ == '__main__':
+    train = pd.read_csv(Config.DATA_PATH + 'train.csv')
 
-
-    img0 = imread(PATH + 'train_images/' + train['ImageId'][0] + '.jpg')
+    img0 = imread(Config.DATA_PATH + 'train_images/' + train['ImageId'][0] + '.jpg')
     img = preprocess_image(img0)
 
     mask, regr = get_mask_and_regr(img0, train['PredictionString'][0])

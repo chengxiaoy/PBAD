@@ -1,5 +1,12 @@
 from network import *
 from car_dataset import *
+from config import Config
+from evaluate import get_map
+import copy
+from predict import predict
+
+
+# Gets the GPU if there is one, otherwise the cpu
 
 
 def criterion(prediction, mask, regr, size_average=True):
@@ -21,85 +28,74 @@ def criterion(prediction, mask, regr, size_average=True):
     return loss
 
 
-def train_model(epoch, history=None):
+def train_model(model, epoch, scheduler, optimizer):
     model.train()
 
+    epoch_loss = 0
+
     for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(tqdm(train_loader)):
-        img_batch = img_batch.to(device)
-        mask_batch = mask_batch.to(device)
-        regr_batch = regr_batch.to(device)
+        img_batch = img_batch.to(Config.device)
+        mask_batch = mask_batch.to(Config.device)
+        regr_batch = regr_batch.to(Config.device)
 
         optimizer.zero_grad()
         output = model(img_batch)
         loss = criterion(output, mask_batch, regr_batch)
-        if history is not None:
-            history.loc[epoch + batch_idx / len(train_loader), 'train_loss'] = loss.data.cpu().numpy()
 
         loss.backward()
-
         optimizer.step()
-        exp_lr_scheduler.step()
+        scheduler.step()
+        epoch_loss += loss.item()
 
+    epoch_loss = epoch_loss / len(train_loader)
     print('Train Epoch: {} \tLR: {:.6f}\tLoss: {:.6f}'.format(
         epoch,
-        optimizer.state_dict()['param_groups'][0]['lr'],
-        loss.data))
+        exp_lr_scheduler.get_lr(),
+        epoch_loss))
+
+    return epoch_loss
 
 
-def evaluate_model(epoch, history=None):
+def evaluate_model(model):
     model.eval()
     loss = 0
 
     with torch.no_grad():
-        for img_batch, mask_batch, regr_batch in dev_loader:
-            img_batch = img_batch.to(device)
-            mask_batch = mask_batch.to(device)
-            regr_batch = regr_batch.to(device)
-
+        for img_batch, mask_batch, regr_batch in valid_loader:
+            img_batch = img_batch.to(Config.device)
+            mask_batch = mask_batch.to(Config.device)
+            regr_batch = regr_batch.to(Config.device)
             output = model(img_batch)
+            loss += criterion(output, mask_batch, regr_batch, size_average=False).item()
 
-            loss += criterion(output, mask_batch, regr_batch, size_average=False).data
+    loss /= len(valid_loader.dataset)
+    MAP = get_map(model)
+    print('Dev loss: {:.4f}, map {}'.format(loss, MAP))
 
-    loss /= len(dev_loader.dataset)
-
-    if history is not None:
-        history.loc[epoch, 'dev_loss'] = loss.cpu().numpy()
-
-    print('Dev loss: {:.4f}'.format(loss))
+    return loss, MAP
 
 
-import gc
+def training(model, optimizer, scheduler, n_epoch):
+    min_loss = float('inf')
+    best_model_wts = copy.deepcopy(model.state_dict())
 
-history = pd.DataFrame()
+    for epoch in n_epoch:
+        train_model(model, epoch, scheduler, optimizer)
 
-for epoch in range(n_epochs):
-    torch.cuda.empty_cache()
-    gc.collect()
-    train_model(epoch, history)
-    evaluate_model(epoch, history)
 
-torch.save(model.state_dict(), './model.pth')
+        valid_loss, MAP = evaluate_model(model)
+        if valid_loss < min_loss:
+            min_loss = valid_loss
+            torch.save(model.state_dict(), Config.model_path)
+            best_model_wts = copy.deepcopy(model.state_dict())
+    model.load_state_dict(best_model_wts)
+    return model
 
-history['train_loss'].iloc[100:].plot()
-series = history.dropna()['dev_loss']
-plt.scatter(series.index, series)
 
-predictions = []
+if __name__ == '__main__':
+    model = get_model(Config.model_name)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
 
-test_loader = DataLoader(dataset=test_dataset, batch_size=4, shuffle=False, num_workers=4)
-
-model.eval()
-
-for img, _, _ in tqdm(test_loader):
-    with torch.no_grad():
-        output = model(img.to(device))
-    output = output.data.cpu().numpy()
-    for out in output:
-        coords = extract_coords(out)
-        s = coords2str(coords)
-        predictions.append(s)
-
-test = pd.read_csv(PATH + 'sample_submission.csv')
-test['PredictionString'] = predictions
-test.to_csv('predictions.csv', index=False)
-test.head()
+    model = training(model, optimizer, scheduler=exp_lr_scheduler, n_epoch=Config.N_EPOCH)
+    predict(model)

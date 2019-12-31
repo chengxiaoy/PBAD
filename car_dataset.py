@@ -2,6 +2,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 import numpy as np
 from img_preprocessing import *
+from config import Config
 
 
 class CarDataset(Dataset):
@@ -41,28 +42,29 @@ class CarDataset(Dataset):
         return [img, mask, regr]
 
 
-train_images_dir = PATH + 'train_images/{}.jpg'
-test_images_dir = PATH + 'test_images/{}.jpg'
+train_images_dir = Config.DATA_PATH + 'train_images/{}.jpg'
+test_images_dir = Config.DATA_PATH + 'test_images/{}.jpg'
 
-df_train, df_dev = train_test_split(train, test_size=0.01, random_state=42)
+train = pd.read_csv(Config.DATA_PATH + 'train.csv')
+test = pd.read_csv(Config.DATA_PATH + 'sample_submission.csv')
+
+df_train, df_valid = train_test_split(train, test_size=0.05, random_state=42)
 df_test = test
 
 # Create dataset objects
 train_dataset = CarDataset(df_train, train_images_dir, training=True)
-dev_dataset = CarDataset(df_dev, train_images_dir, training=False)
+dev_dataset = CarDataset(df_valid, train_images_dir, training=False)
 test_dataset = CarDataset(df_test, test_images_dir, training=False)
 
-
-BATCH_SIZE = 4
-
 # Create data generators - they will produce batches
-train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-dev_loader = DataLoader(dataset=dev_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
-test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
+train_loader = DataLoader(dataset=train_dataset, batch_size=Config.BATCH_SIZE, shuffle=True, num_workers=4)
+valid_loader = DataLoader(dataset=dev_dataset, batch_size=Config.BATCH_SIZE, shuffle=False, num_workers=0)
+test_loader = DataLoader(dataset=test_dataset, batch_size=Config.BATCH_SIZE, shuffle=False, num_workers=0)
 
 if __name__ == '__main__':
     img, mask, regr = train_dataset[0]
-
+    # for i in train_loader:
+    #     print(i)
     plt.figure(figsize=(16, 16))
     plt.imshow(np.rollaxis(img, 0, 3))
     plt.show()
