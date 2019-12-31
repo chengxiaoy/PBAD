@@ -81,7 +81,7 @@ def training(model, optimizer, scheduler, n_epoch):
     for epoch in range(n_epoch):
         train_model(model, epoch, scheduler, optimizer)
         valid_loss, MAP = evaluate_model(model)
-        scheduler.step()
+        scheduler.step(MAP)
         if valid_loss < min_loss:
             min_loss = valid_loss
             torch.save(model.state_dict(), Config.model_path)
