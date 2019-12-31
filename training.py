@@ -48,7 +48,7 @@ def train_model(model, epoch, scheduler, optimizer):
         epoch_loss += loss.item()
 
     epoch_loss = epoch_loss / len(train_loader)
-    print('Train Epoch: {} \tLR: {:.6f}\tLoss: {:.6f}'.format(
+    print('Train Epoch: {} \tLR: {:.6f}\tLoss: {}'.format(
         epoch,
         exp_lr_scheduler.get_lr(),
         epoch_loss))
