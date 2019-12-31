@@ -50,7 +50,7 @@ def train_model(model, epoch, scheduler, optimizer):
     epoch_loss = epoch_loss / len(train_loader)
     print('Train Epoch: {} \tLR: {:.6f}\tLoss: {}'.format(
         epoch,
-        exp_lr_scheduler.get_lr(),
+        exp_lr_scheduler.get_lr()[0],
         epoch_loss))
 
     return epoch_loss
