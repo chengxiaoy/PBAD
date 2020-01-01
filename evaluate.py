@@ -145,6 +145,8 @@ def get_map(model):
     valid_df['ImageId'] = df_valid['ImageId']
     valid_df['PredictionString'] = predictions
 
+    valid_df.to_csv("prediction_for_validation_data.csv")
+
     expanded_valid_df = expand_df(valid_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
     valid_df = valid_df.fillna('')
     train_df = pd.read_csv('./pku-autonomous-driving/train.csv')
@@ -176,3 +178,8 @@ def get_map(model):
     map = np.mean(ap_list)
 
     return map
+
+
+if __name__ == '__main__':
+    test_df = pd.read_csv('prediction_for_validation_data.csv')
+    expand_df(test_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
