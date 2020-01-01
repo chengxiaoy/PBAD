@@ -60,13 +60,13 @@ def evaluate_model(model):
 
     with torch.no_grad():
         for img_batch, mask_batch, regr_batch in valid_loader:
-            img_batch = img_batch.cuda()
-            mask_batch = mask_batch.cuda()
-            regr_batch = regr_batch.cuda()
+            # img_batch = img_batch.cuda()
+            # mask_batch = mask_batch.cuda()
+            # regr_batch = regr_batch.cuda()
 
-            # img_batch = img_batch.to(Config.device)
-            # mask_batch = mask_batch.to(Config.device)
-            # regr_batch = regr_batch.to(Config.device)
+            img_batch = img_batch.to(Config.device)
+            mask_batch = mask_batch.to(Config.device)
+            regr_batch = regr_batch.to(Config.device)
             output = model(img_batch)
             loss += criterion(output, mask_batch, regr_batch, size_average=False).item()
 
