@@ -57,9 +57,12 @@ dev_dataset = CarDataset(df_valid, train_images_dir, training=False)
 test_dataset = CarDataset(df_test, test_images_dir, training=False)
 
 # Create data generators - they will produce batches
-train_loader = DataLoader(dataset=train_dataset, batch_size=Config.BATCH_SIZE, shuffle=True, num_workers=4)
-valid_loader = DataLoader(dataset=dev_dataset, batch_size=Config.BATCH_SIZE, shuffle=False, num_workers=0)
-test_loader = DataLoader(dataset=test_dataset, batch_size=Config.BATCH_SIZE, shuffle=False, num_workers=0)
+train_loader = DataLoader(dataset=train_dataset, batch_size=Config.BATCH_SIZE, pin_memory=True, shuffle=True,
+                          num_workers=8)
+valid_loader = DataLoader(dataset=dev_dataset, batch_size=Config.BATCH_SIZE, pin_memory=True, shuffle=False,
+                          num_workers=8)
+test_loader = DataLoader(dataset=test_dataset, batch_size=Config.BATCH_SIZE, pin_memory=True, shuffle=False,
+                         num_workers=8)
 
 if __name__ == '__main__':
     img, mask, regr = train_dataset[0]

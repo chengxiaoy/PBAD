@@ -9,7 +9,7 @@ class Config():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     PARALLEL = True
     device_ids = [0, 1]
-    BATCH_SIZE = 4 * len(device_ids) if PARALLEL else 4
+    BATCH_SIZE = 8 * len(device_ids) if PARALLEL else 8
     DATA_PATH = './pku-autonomous-driving/'
     model_name = "basic"
     N_EPOCH = 20
