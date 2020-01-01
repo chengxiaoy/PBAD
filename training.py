@@ -79,14 +79,15 @@ def evaluate_model(model):
 
 def training(model, optimizer, scheduler, n_epoch):
     min_loss = float('inf')
+    max_MAP = 0.0
     best_model_wts = copy.deepcopy(model.state_dict())
 
     for epoch in range(n_epoch):
         train_model(model, epoch, scheduler, optimizer)
         valid_loss, MAP = evaluate_model(model)
         scheduler.step(MAP)
-        if valid_loss < min_loss:
-            min_loss = valid_loss
+        if MAP > max_MAP:
+            max_MAP = MAP
             torch.save(model.state_dict(), Config.model_path)
             best_model_wts = copy.deepcopy(model.state_dict())
     model.load_state_dict(best_model_wts)
