@@ -63,7 +63,7 @@ def get_model(model_name):
         model = UNet(3, Config.N_CLASS)
     if Config.PARALLEL and str(Config.device) != 'cpu':
         model = torch.nn.DataParallel(model, device_ids=Config.device_ids)
-    model.to(Config.device)
+    model = model.to(Config.device)
     return model
 
 
