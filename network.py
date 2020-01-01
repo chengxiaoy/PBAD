@@ -58,9 +58,12 @@ class MyUNet(nn.Module):
 
 def get_model(model_name):
     if model_name == 'basic':
-        return MyUNet(Config.N_CLASS).to(Config.device)
+        model = MyUNet(Config.N_CLASS).to(Config.device)
     if model_name == 'basic_unet':
-        return UNet(3, Config.N_CLASS).to(Config.device)
+        model = UNet(3, Config.N_CLASS).to(Config.device)
+    if Config.PARALLEL and str(Config.device) != 'cpu':
+        model = torch.nn.DataParallel(model, device_ids=Config.device_ids)
+    return model
 
 
 if __name__ == '__main__':

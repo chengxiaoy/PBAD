@@ -146,6 +146,7 @@ def get_map(model):
     valid_df['PredictionString'] = predictions
 
     valid_df.to_csv("prediction_for_validation_data.csv")
+    valid_df = pd.read_csv("prediction_for_validation_data.csv")
 
     expanded_valid_df = expand_df(valid_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
     valid_df = valid_df.fillna('')
@@ -182,4 +183,6 @@ def get_map(model):
 
 if __name__ == '__main__':
     test_df = pd.read_csv('prediction_for_validation_data.csv')
-    expand_df(test_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
+    # test_df = test_df.fillna('')
+
+    hehe = expand_df(test_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
