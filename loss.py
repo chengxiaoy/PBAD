@@ -6,7 +6,7 @@ from math import floor
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, alpha=1, gamma=2, logits=False, reduce=True):
+    def __init__(self, alpha=0.5, gamma=2, logits=False, reduce=True):
         super(FocalLoss, self).__init__()
         self.alpha = alpha
         self.gamma = gamma
@@ -19,7 +19,9 @@ class FocalLoss(nn.Module):
         else:
             BCE_loss = F.binary_cross_entropy(inputs, targets, reduce=False)
         pt = torch.exp(-BCE_loss)
-        F_loss = self.alpha * (1 - pt) ** self.gamma * BCE_loss
+
+        alpha = self.alpha*targets+(1-self.alpha)*(1-targets)
+        F_loss = alpha * (1 - pt) ** self.gamma * BCE_loss
 
         if self.reduce:
             return torch.mean(F_loss)

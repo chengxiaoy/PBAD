@@ -20,7 +20,7 @@ def criterion(prediction, mask, regr, size_average=True):
     # mask_loss = -mask_loss.mean(0).sum()
 
     # focal loss
-    mask_criterion = FocalLoss(alpha=Config.FOCAL_ALPHA)
+    mask_criterion = FocalLoss(alpha=0.5)
     mask_loss = mask_criterion(pred_mask, mask)
 
     # Regression L1 loss
@@ -29,7 +29,7 @@ def criterion(prediction, mask, regr, size_average=True):
     regr_loss = regr_loss.mean(0)
 
     # Sum
-    loss = Config.MASK_WEIGHT * mask_loss + regr_loss
+    loss = mask_loss + regr_loss
     if not size_average:
         loss *= prediction.shape[0]
     return loss
@@ -106,11 +106,12 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
     # predict(model)
 
-    Config.expriment_id = 2
+
+
+
+    Config.expriment_id = 4
     Config.model_name = "basic_unet"
-    Config.MODEL_SCALE = 1
-    Config.BATCH_SIZE = 8
-    Config.MASK_WEIGHT = 1000
+    Config.FOCAL_ALPHA = 0.25
 
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -119,26 +120,9 @@ if __name__ == '__main__':
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
     predict(model)
 
-    Config.expriment_id = 10
-    Config.model_name = "basic_unet"
-    Config.MODEL_SCALE = 1
-    Config.BATCH_SIZE = 8
-    Config.MASK_WEIGHT = 1000
-    Config.FOCAL_ALPHA = 0.99
-
-    model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
-    predict(model)
-
-    Config.expriment_id = 11
-    Config.model_name = "basic_unet"
-    Config.MODEL_SCALE = 1
-    Config.BATCH_SIZE = 8
-    Config.MASK_WEIGHT = 1000
-    Config.FOCAL_ALPHA = 0.01
+    Config.expriment_id = 5
+    Config.model_name = "basic"
+    Config.FOCAL_ALPHA = 0.75
 
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
