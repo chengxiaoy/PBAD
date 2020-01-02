@@ -53,8 +53,8 @@ if __name__ == '__main__':
 
         output0 = FocalLoss(gamma=0)(x, l)
         output1 = nn.CrossEntropyLoss()(x, l)
-        a = output0.data[0]
-        b = output1.data[0]
+        a = output0.item()
+        b = output1.item()
         if abs(a - b) > maxe: maxe = abs(a - b)
     print('time:', time.time() - start_time, 'max_error:', maxe)
 
@@ -69,7 +69,7 @@ if __name__ == '__main__':
 
         output0 = FocalLoss(gamma=0)(x, l)
         output1 = nn.NLLLoss2d()(F.log_softmax(x), l)
-        a = output0.data[0]
-        b = output1.data[0]
+        a = output0.item()
+        b = output1.item()
         if abs(a - b) > maxe: maxe = abs(a - b)
     print('time:', time.time() - start_time, 'max_error:', maxe)
