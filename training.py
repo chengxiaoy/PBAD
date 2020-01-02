@@ -112,6 +112,7 @@ if __name__ == '__main__':
     Config.model_name = "basic_unet"
     Config.MODEL_SCALE = 1
     Config.BATCH_SIZE = 8
+    Config.FOCAL_ALPHA = 0.999
     Config.MASK_WEIGHT = 1000
 
     model = get_model(Config.model_name)
