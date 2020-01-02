@@ -1,26 +1,22 @@
-import numpy as np # linear algebra
-import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
-import cv2
-from tqdm import tqdm#_notebook as tqdm
+from img_preprocessing import str2coords
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from functools import reduce
-import os
-from scipy.optimize import minimize
-import plotly.express as px
 
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+train = pd.read_csv("pku-autonomous-driving/train.csv")
+lens = [len(str2coords(s)) for s in train['PredictionString']]
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-from torch.optim import lr_scheduler
-from torch.utils.data import Dataset, DataLoader
-from torchvision import models
-from torchvision import transforms, utils
+plt.figure(figsize=(15, 6))
+sns.countplot(lens)
+plt.xlabel('Number of cars in image')
+plt.show()
 
-PATH = '../input/pku-autonomous-driving/'
-os.listdir(PATH)
+
+valid = pd.read_csv("predications.csv")
+valid = valid.fillna("")
+lens = [len(str2coords(s)) for s in valid['PredictionString']]
+
+plt.figure(figsize=(15, 6))
+sns.countplot(lens)
+plt.xlabel('Number of cars in image')
+plt.show()

@@ -60,10 +60,6 @@ def evaluate_model(model):
 
     with torch.no_grad():
         for img_batch, mask_batch, regr_batch in valid_loader:
-            # img_batch = img_batch.cuda()
-            # mask_batch = mask_batch.cuda()
-            # regr_batch = regr_batch.cuda()
-
             img_batch = img_batch.to(Config.device)
             mask_batch = mask_batch.to(Config.device)
             regr_batch = regr_batch.to(Config.device)
@@ -88,7 +84,7 @@ def training(model, optimizer, scheduler, n_epoch):
     for epoch in range(n_epoch):
         train_model(model, epoch, scheduler, optimizer)
         valid_loss, MAP = evaluate_model(model)
-        scheduler.step(MAP)
+        scheduler.step(valid_loss)
         if MAP > max_MAP:
             max_MAP = MAP
             torch.save(model.state_dict(), Config.model_path)
@@ -108,6 +104,7 @@ if __name__ == '__main__':
     Config.expriment_id = 2
     Config.model_name = "basic_unet"
     Config.MODEL_SCALE = 1
+    Config.BATCH_SIZE = 8
 
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
