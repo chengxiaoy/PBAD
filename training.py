@@ -16,12 +16,12 @@ def criterion(prediction, mask, regr, size_average=True):
     pred_mask = torch.sigmoid(prediction[:, 0])
 
     #     mask_loss = mask * (1 - pred_mask)**2 * torch.log(pred_mask + 1e-12) + (1 - mask) * pred_mask**2 * torch.log(1 - pred_mask + 1e-12)
-    mask_loss = mask * torch.log(pred_mask + 1e-12) + (1 - mask) * torch.log(1 - pred_mask + 1e-12)
-    mask_loss = -mask_loss.mean(0).sum()
+    # mask_loss = mask * torch.log(pred_mask + 1e-12) + (1 - mask) * torch.log(1 - pred_mask + 1e-12)
+    # mask_loss = -mask_loss.mean(0).sum()
 
     # focal loss
-    # mask_criterion = FocalLoss(alpha=100)
-    # mask_loss = mask_criterion(pred_mask, mask)
+    mask_criterion = FocalLoss(alpha=1000)
+    mask_loss = mask_criterion(pred_mask, mask)
 
     # Regression L1 loss
     pred_regr = prediction[:, 1:]
