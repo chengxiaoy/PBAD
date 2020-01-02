@@ -6,7 +6,7 @@ import copy
 from predict import predict
 from torch.optim.lr_scheduler import ExponentialLR, ReduceLROnPlateau, MultiStepLR
 from loss import FocalLoss
-
+import gc
 
 # Gets the GPU if there is one, otherwise the cpu
 
@@ -86,6 +86,8 @@ def training(model, optimizer, scheduler, n_epoch):
     best_model_wts = copy.deepcopy(model.state_dict())
 
     for epoch in range(n_epoch):
+        torch.cuda.empty_cache()
+        gc.collect()
         train_model(model, epoch, scheduler, optimizer)
         valid_loss, MAP = evaluate_model(model)
         scheduler.step(valid_loss)
