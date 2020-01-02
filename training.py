@@ -105,7 +105,7 @@ if __name__ == '__main__':
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=5, verbose=True)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
     predict(model)
 
