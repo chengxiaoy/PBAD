@@ -30,7 +30,7 @@ def criterion(prediction, mask, regr, size_average=True):
     regr_loss = regr_loss.mean(0)
 
     # Sum
-    loss = mask_loss + regr_loss
+    loss = Config.MASK_WEIGHT * mask_loss + regr_loss
     if not size_average:
         loss *= prediction.shape[0]
     return loss
@@ -103,13 +103,12 @@ def training(model, optimizer, scheduler, n_epoch, writer):
 
 
 if __name__ == '__main__':
-
     Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
     Config.expriment_id = 3
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
