@@ -1,75 +1,88 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
+from torch import nn
 import torch.nn.functional as F
-from torch.autograd import Variable
-
-import os, sys, random, time
-import argparse
+import torch
+import numpy as np
+from math import floor
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, gamma=0, alpha=None, size_average=True):
+    def __init__(self, alpha=1, gamma=2, logits=False, reduce=True):
         super(FocalLoss, self).__init__()
-        self.gamma = gamma
         self.alpha = alpha
-        if isinstance(alpha, (float, int)): self.alpha = torch.Tensor([alpha, 1 - alpha])
-        if isinstance(alpha, list): self.alpha = torch.Tensor(alpha)
-        self.size_average = size_average
+        self.gamma = gamma
+        self.logits = logits
+        self.reduce = reduce
 
-    def forward(self, input, target):
-        if input.dim() > 2:
-            input = input.view(input.size(0), input.size(1), -1)  # N,C,H,W => N,C,H*W
-            input = input.transpose(1, 2)  # N,C,H*W => N,H*W,C
-            input = input.contiguous().view(-1, input.size(2))  # N,H*W,C => N*H*W,C
-        target = target.view(-1, 1)
-
-        logpt = F.log_softmax(input)
-        logpt = logpt.gather(1, target)
-        logpt = logpt.view(-1)
-        pt = Variable(logpt.data.exp())
-
-        if self.alpha is not None:
-            if self.alpha.type() != input.data.type():
-                self.alpha = self.alpha.type_as(input.data)
-            at = self.alpha.gather(0, target.data.view(-1))
-            logpt = logpt * Variable(at)
-
-        loss = -1 * (1 - pt) ** self.gamma * logpt
-        if self.size_average:
-            return loss.mean()
+    def forward(self, inputs, targets):
+        if self.logits:
+            BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduce=False)
         else:
-            return loss.sum()
+            BCE_loss = F.binary_cross_entropy(inputs, targets, reduce=False)
+        pt = torch.exp(-BCE_loss)
+        F_loss = self.alpha * (1 - pt) ** self.gamma * BCE_loss
+
+        if self.reduce:
+            return torch.mean(F_loss)
+        else:
+            return F_loss
 
 
-if __name__ == '__main__':
-    start_time = time.time()
-    maxe = 0
-    for i in range(1000):
-        x = torch.rand(12800, 2) * random.randint(1, 10)
-        x = Variable(x.cuda())
-        l = torch.rand(12800).ge(0.1).long()
-        l = Variable(l.cuda())
+class FocalLoss_v2(nn.Module):
+    '''nn.Module warpper for focal loss'''
 
-        output0 = FocalLoss(gamma=0)(x, l)
-        output1 = nn.CrossEntropyLoss()(x, l)
-        a = output0.item()
-        b = output1.item()
-        if abs(a - b) > maxe: maxe = abs(a - b)
-    print('time:', time.time() - start_time, 'max_error:', maxe)
+    def __init__(self):
+        super(FocalLoss_v2, self).__init__()
+        self.neg_loss = _neg_loss
 
-    start_time = time.time()
-    maxe = 0
-    for i in range(100):
-        x = torch.rand(128, 1000, 8, 4) * random.randint(1, 10)
-        x = Variable(x.cuda())
-        l = torch.rand(128, 8, 4) * 1000  # 1000 is classes_num
-        l = l.long()
-        l = Variable(l.cuda())
+    def forward(self, out, target):
+        return self.neg_loss(out, target)
 
-        output0 = FocalLoss(gamma=0)(x, l)
-        output1 = nn.NLLLoss2d()(F.log_softmax(x), l)
-        a = output0.item()
-        b = output1.item()
-        if abs(a - b) > maxe: maxe = abs(a - b)
-    print('time:', time.time() - start_time, 'max_error:', maxe)
+
+def _neg_loss(pred, gt):
+    ''' Modified focal loss. Exactly the same as CornerNet.
+        Runs faster and costs a little bit more memory
+      Arguments:
+        pred (batch x c x h x w)
+        gt_regr (batch x c x h x w)
+    '''
+    pos_inds = gt.eq(1).float()
+    neg_inds = gt.lt(1).float()
+
+    neg_weights = torch.pow(1 - gt, 4)
+
+    loss = 0
+
+    pos_loss = torch.log(pred) * torch.pow(1 - pred, 2) * pos_inds
+    neg_loss = torch.log(1 - pred) * torch.pow(pred, 2) * neg_weights * neg_inds
+
+    num_pos = pos_inds.float().sum()
+    pos_loss = pos_loss.sum()
+    neg_loss = neg_loss.sum()
+
+    if num_pos == 0:
+        loss = loss - neg_loss
+    else:
+        loss = loss - (pos_loss + neg_loss) / num_pos
+    return loss
+
+
+def heatmap(u, v, output_width=128, output_height=128, sigma=1):
+    def get_heatmap(p_x, p_y):
+        X1 = np.linspace(1, output_width, output_width)
+        Y1 = np.linspace(1, output_height, output_height)
+        [X, Y] = np.meshgrid(X1, Y1)
+        X = X - floor(p_x)
+        Y = Y - floor(p_y)
+        D2 = X * X + Y * Y
+        E2 = 2.0 * sigma ** 2
+        Exponent = D2 / E2
+        heatmap = np.exp(-Exponent)
+        heatmap = heatmap[:, :, np.newaxis]
+        return heatmap
+
+    output = np.zeros((128, 128, 1))
+    for i in range(len(u)):
+        heatmap = get_heatmap(u[i], v[i])
+        output[:, :] = np.maximum(output[:, :], heatmap[:, :])
+
+    return output

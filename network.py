@@ -73,6 +73,6 @@ if __name__ == '__main__':
     # y = model(x)
     # print(y.size())
 
-    model = get_model('basic_unet')
+    model = get_model('basic')
     y = model(x)
     print(y.size())
