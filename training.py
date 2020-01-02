@@ -73,10 +73,8 @@ def evaluate_model(model):
             loss += criterion(output, mask_batch, regr_batch, size_average=False).item()
 
     loss /= len(valid_loader.dataset)
-    try:
-        MAP = get_map(model)
-    except Exception as e:
-        MAP = 0.0
+    MAP = get_map(model)
+
     print('Dev loss: {:.4f}, map {}'.format(loss, MAP))
 
     return loss, MAP
@@ -100,19 +98,7 @@ def training(model, optimizer, scheduler, n_epoch):
 
 
 if __name__ == '__main__':
-    # Config.expriment_id = 3
-    #
-    # model = get_model(Config.model_name)
-    # optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
-    # predict(model)
-
-    Config.expriment_id = 2
-    Config.model_name = "basic_unet"
-    Config.MODEL_SCALE = 1
-    Config.BATCH_SIZE = 8
+    Config.expriment_id = 3
 
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
@@ -120,3 +106,15 @@ if __name__ == '__main__':
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
     predict(model)
+
+    # Config.expriment_id = 2
+    # Config.model_name = "basic_unet"
+    # Config.MODEL_SCALE = 1
+    # Config.BATCH_SIZE = 8
+    #
+    # model = get_model(Config.model_name)
+    # optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
+    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
+    # predict(model)

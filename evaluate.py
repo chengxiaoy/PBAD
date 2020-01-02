@@ -145,10 +145,10 @@ def get_map(model):
     valid_df['ImageId'] = df_valid['ImageId']
     valid_df['PredictionString'] = predictions
 
-    valid_df.to_csv("prediction_for_validation_data.csv")
-    valid_df = pd.read_csv("prediction_for_validation_data.csv")
+    valid_df.to_csv(str(Config.expriment_id) + "_prediction_for_validation_data.csv")
+    valid_df = pd.read_csv(str(Config.expriment_id) + "_prediction_for_validation_data.csv")
 
-    expanded_valid_df = expand_df(valid_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
+    # expanded_valid_df = expand_df(valid_df, ['pitch', 'yaw', 'roll', 'x', 'y', 'z', 'Score'])
     valid_df = valid_df.fillna('')
     train_df = pd.read_csv('./pku-autonomous-driving/train.csv')
     train_df = train_df[train_df.ImageId.isin(valid_df.ImageId.unique())]
