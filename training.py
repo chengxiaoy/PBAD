@@ -20,7 +20,7 @@ def criterion(prediction, mask, regr, size_average=True):
     # mask_loss = -mask_loss.mean(0).sum()
 
     # focal loss
-    mask_criterion = FocalLoss(alpha=10)
+    mask_criterion = FocalLoss(alpha=100)
     mask_loss = mask_criterion(pred_mask, mask)
 
     # Regression L1 loss
