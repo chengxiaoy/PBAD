@@ -31,7 +31,16 @@ class CarDataset(Dataset):
             flip = np.random.randint(10) == 1
 
         # Read image
-        img0 = imread(img_name, Config.USE_MASK, True)
+        if Config.USE_MASK:
+            if self.root_dir == Config.DATA_PATH + 'train_images/{}.jpg':
+                mask_path = Config.DATA_PATH + 'MaskTrain/{}.jpg'
+            else:
+                mask_path = Config.DATA_PATH + 'MaskTest/{}.jpg'
+            img_name = mask_path.format(idx)
+            img0 = imread(img_name, True)
+        else:
+            img0 = imread(img_name, True)
+
         img = preprocess_image(img0, flip=flip)
         img = np.rollaxis(img, 2, 0)
 

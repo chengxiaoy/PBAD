@@ -32,17 +32,23 @@ camera_matrix = np.array([[2304.5479, 0, 1686.2379],
 camera_matrix_inv = np.linalg.inv(camera_matrix)
 
 
-def imread(path, mask=False, fast_mode=False):
-    img = cv2.imread(path)
-    if mask:
-        imagemask = cv2.imread(path, 0)
-        try:
-            imagemaskinv = cv2.bitwise_not(imagemask)
-            res = cv2.bitwise_and(img, img, mask=imagemaskinv)
-            img = res
-        except:
-            pass
+# def imread(path, mask=False, fast_mode=False):
+#     img = cv2.imread(path)
+#     if mask:
+#         imagemask = cv2.imread(path, 0)
+#         try:
+#             imagemaskinv = cv2.bitwise_not(imagemask)
+#             res = cv2.bitwise_and(img, img, mask=imagemaskinv)
+#             img = res
+#         except:
+#             pass
+#
+#     if not fast_mode and img is not None and len(img.shape) == 3:
+#         img = np.array(img[:, :, ::-1])
+#     return img
 
+def imread(path, fast_mode=False):
+    img = cv2.imread(path)
     if not fast_mode and img is not None and len(img.shape) == 3:
         img = np.array(img[:, :, ::-1])
     return img
