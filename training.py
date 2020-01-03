@@ -7,6 +7,8 @@ from predict import predict
 from torch.optim.lr_scheduler import ExponentialLR, ReduceLROnPlateau, MultiStepLR
 from loss import FocalLoss
 import gc
+from tensorboardX import SummaryWriter
+
 
 # Gets the GPU if there is one, otherwise the cpu
 
@@ -80,17 +82,19 @@ def evaluate_model(model):
     return loss, MAP
 
 
-def training(model, optimizer, scheduler, n_epoch):
+def training(model, optimizer, scheduler, n_epoch, writer):
     min_loss = float('inf')
     max_MAP = 0.0
     best_model_wts = copy.deepcopy(model.state_dict())
 
     for epoch in range(n_epoch):
-        torch.cuda.empty_cache()
-        gc.collect()
-        train_model(model, epoch, scheduler, optimizer)
+        train_loss = train_model(model, epoch, scheduler, optimizer)
         valid_loss, MAP = evaluate_model(model)
         scheduler.step(valid_loss)
+
+        writer.add_scalars('data/loss', {'train': train_loss, 'val': valid_loss}, epoch)
+        writer.add_scalars('data/map', {'val': MAP}, epoch)
+
         if MAP > max_MAP:
             max_MAP = MAP
             torch.save(model.state_dict(), Config.model_path)
@@ -108,7 +112,9 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
     # predict(model)
 
-    Config.expriment_id = 2
+    Config.expriment_id = 10
+    writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+
     Config.model_name = "basic_unet"
     Config.MODEL_SCALE = 1
     Config.BATCH_SIZE = 8
@@ -119,10 +125,12 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
+    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     predict(model)
 
-    Config.expriment_id = 10
+    Config.expriment_id = 11
+    writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+
     Config.model_name = "basic_unet"
     Config.MODEL_SCALE = 1
     Config.BATCH_SIZE = 8
@@ -133,10 +141,12 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
+    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     predict(model)
 
-    Config.expriment_id = 11
+    Config.expriment_id = 12
+    writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+
     Config.model_name = "basic_unet"
     Config.MODEL_SCALE = 1
     Config.BATCH_SIZE = 8
@@ -147,5 +157,5 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
+    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     predict(model)
