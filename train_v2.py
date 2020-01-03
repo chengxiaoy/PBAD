@@ -98,6 +98,8 @@ def training(model, optimizer, scheduler, n_epoch, writer):
             max_MAP = MAP
             torch.save(model.state_dict(), Config.model_path)
             best_model_wts = copy.deepcopy(model.state_dict())
+
+
     model.load_state_dict(best_model_wts)
     return model
 
@@ -129,8 +131,9 @@ if __name__ == '__main__':
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic"
     Config.FOCAL_ALPHA = 0.75
+    Config.N_EPOCH = 50
     model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
