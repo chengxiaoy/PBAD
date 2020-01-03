@@ -32,10 +32,17 @@ camera_matrix = np.array([[2304.5479, 0, 1686.2379],
 camera_matrix_inv = np.linalg.inv(camera_matrix)
 
 
-
-
-def imread(path, fast_mode=False):
+def imread(path, mask=False, fast_mode=False):
     img = cv2.imread(path)
+    if mask:
+        imagemask = cv2.imread(path, 0)
+        try:
+            imagemaskinv = cv2.bitwise_not(imagemask)
+            res = cv2.bitwise_and(img, img, mask=imagemaskinv)
+            img = res
+        except:
+            pass
+
     if not fast_mode and img is not None and len(img.shape) == 3:
         img = np.array(img[:, :, ::-1])
     return img
@@ -230,7 +237,29 @@ def get_mask_and_regr(img, labels, flip=False):
     return mask, regr
 
 
+def CreateMaskImages(imageName):
+    trainimage = cv2.imread(Config.DATA_PATH + "/train_images/" + imageName + '.jpg')
+    imagemask = cv2.imread(Config.DATA_PATH + "/train_masks/" + imageName + ".jpg", 0)
+    try:
+        imagemaskinv = cv2.bitwise_not(imagemask)
+        res = cv2.bitwise_and(trainimage, trainimage, mask=imagemaskinv)
+
+        # cut upper half,because it doesn't contain cars.
+        res = res[res.shape[0] // 2:]
+        return res
+    except:
+        trainimage = trainimage[trainimage.shape[0] // 2:]
+        return trainimage
+
+
 if __name__ == '__main__':
+    trainImg = CreateMaskImages('ID_0a1cb53b1')
+
+    plt.figure(figsize=(16, 16))
+    plt.title('mask image')
+    plt.imshow(trainImg)
+    plt.show()
+
     train = pd.read_csv(Config.DATA_PATH + 'train.csv')
 
     img0 = imread(Config.DATA_PATH + 'train_images/' + train['ImageId'][0] + '.jpg')

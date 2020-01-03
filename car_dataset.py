@@ -31,7 +31,7 @@ class CarDataset(Dataset):
             flip = np.random.randint(10) == 1
 
         # Read image
-        img0 = imread(img_name, True)
+        img0 = imread(img_name, Config.USE_MASK, True)
         img = preprocess_image(img0, flip=flip)
         img = np.rollaxis(img, 2, 0)
 

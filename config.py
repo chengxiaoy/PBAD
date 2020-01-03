@@ -17,3 +17,4 @@ class Config():
     model_path = str(expriment_id) + '_model.pth'
     MASK_WEIGHT = 100
     FOCAL_ALPHA = 0.5
+    USE_MASK = False
