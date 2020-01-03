@@ -97,7 +97,7 @@ def training(model, optimizer, scheduler, n_epoch, writer):
 
         if MAP > max_MAP:
             max_MAP = MAP
-            torch.save(model.state_dict(), Config.model_path)
+            torch.save(model.state_dict(), str(Config.expriment_id) + '_model.pth')
             best_model_wts = copy.deepcopy(model.state_dict())
     model.load_state_dict(best_model_wts)
     return model

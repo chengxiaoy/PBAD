@@ -20,3 +20,10 @@ def predict(model):
     test = pd.read_csv(Config.DATA_PATH + 'sample_submission.csv')
     test['PredictionString'] = predictions
     test.to_csv(str(Config.expriment_id) + '_predictions.csv', index=False)
+
+if __name__ == '__main__':
+
+    model = get_model(Config.model_name)
+    model.load_state_dict(torch.load('1_model.pth'))
+    model.eval()
+    predict(model)
