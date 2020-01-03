@@ -105,33 +105,33 @@ def training(model, optimizer, scheduler, n_epoch, writer):
 if __name__ == '__main__':
     Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
-    Config.expriment_id = 3
-    writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-    model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
-    predict(model)
-
-    Config.expriment_id = 4
-    writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-    Config.model_name = "basic"
-    Config.FOCAL_ALPHA = 0.25
-    model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
-    predict(model)
+    # Config.expriment_id = 3
+    # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+    # model = get_model(Config.model_name)
+    # optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
+    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
+    # predict(model)
+    #
+    # Config.expriment_id = 4
+    # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+    # Config.model_name = "basic"
+    # Config.FOCAL_ALPHA = 0.25
+    # model = get_model(Config.model_name)
+    # optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
+    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
+    # predict(model)
 
     Config.expriment_id = 5
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic"
     Config.FOCAL_ALPHA = 0.75
     model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     predict(model)
