@@ -41,7 +41,7 @@ def train_model(model, epoch, scheduler, optimizer):
     model.train()
     epoch_loss = 0
 
-    for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(tqdm(train_loader)):
+    for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(train_loader):
         img_batch = img_batch.to(Config.device)
         mask_batch = mask_batch.to(Config.device)
         regr_batch = regr_batch.to(Config.device)
