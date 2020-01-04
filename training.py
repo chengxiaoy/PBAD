@@ -107,7 +107,6 @@ def training(model, optimizer, scheduler, n_epoch, writer):
 
 
 if __name__ == '__main__':
-    Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
     # Config.expriment_id = 3
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
