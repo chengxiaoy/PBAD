@@ -6,7 +6,6 @@ import copy
 from predict import predict
 from torch.optim.lr_scheduler import ExponentialLR, ReduceLROnPlateau, MultiStepLR
 from loss import FocalLoss
-import gc
 from tensorboardX import SummaryWriter
 
 
@@ -22,7 +21,7 @@ def criterion(prediction, mask, regr, size_average=True):
     # mask_loss = -mask_loss.mean(0).sum()
 
     # focal loss
-    mask_criterion = FocalLoss(alpha=Config.FOCAL_ALPHA)
+    mask_criterion = FocalLoss(alpha=0.5)
     mask_loss = mask_criterion(pred_mask, mask)
 
     # Regression L1 loss
@@ -40,8 +39,10 @@ def criterion(prediction, mask, regr, size_average=True):
 def train_model(model, epoch, scheduler, optimizer):
     model.train()
     epoch_loss = 0
+
     train_loader = get_data_loader()[0]
-    for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(train_loader):
+
+    for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(tqdm(train_loader)):
         img_batch = img_batch.to(Config.device)
         mask_batch = mask_batch.to(Config.device)
         regr_batch = regr_batch.to(Config.device)
@@ -66,6 +67,7 @@ def evaluate_model(model):
     model.eval()
     loss = 0
     valid_loader = get_data_loader()[1]
+
     with torch.no_grad():
         for img_batch, mask_batch, regr_batch in valid_loader:
             img_batch = img_batch.to(Config.device)
@@ -99,60 +101,44 @@ def training(model, optimizer, scheduler, n_epoch, writer):
             max_MAP = MAP
             torch.save(model.state_dict(), str(Config.expriment_id) + '_model.pth')
             best_model_wts = copy.deepcopy(model.state_dict())
+
     model.load_state_dict(best_model_wts)
     return model
 
 
 if __name__ == '__main__':
+    Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+
     # Config.expriment_id = 3
+    # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+    # model = get_model(Config.model_name)
+    # optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
+    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
+    # predict(model)
+    #
+    # Config.expriment_id = 4
+    # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+    # Config.model_name = "basic"
+    # Config.FOCAL_ALPHA = 0.25
     # model = get_model(Config.model_name)
     # optimizer = optim.Adam(model.parameters(), lr=0.001)
     # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     # lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH)
+    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     # predict(model)
 
     Config.expriment_id = 10
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-
     Config.model_name = "basic_unet"
-    Config.MODEL_SCALE = 1
-    Config.FOCAL_ALPHA = 0.999
-    Config.MASK_WEIGHT = 1000
-
+    Config.MODEL_SCALE =1
+    Config.FOCAL_ALPHA = 0.75
+    Config.N_EPOCH = 30
+    Config.USE_MASK = True
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
-    predict(model)
-
-    Config.expriment_id = 11
-    writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-
-    Config.model_name = "basic_unet"
-    Config.MODEL_SCALE = 1
-    Config.MASK_WEIGHT = 1000
-    Config.FOCAL_ALPHA = 0.99
-
-    model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
-    predict(model)
-
-    Config.expriment_id = 12
-    writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-
-    Config.model_name = "basic_unet"
-    Config.MODEL_SCALE = 1
-    Config.MASK_WEIGHT = 1000
-    Config.FOCAL_ALPHA = 0.01
-
-    model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=5, verbose=True)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     predict(model)
