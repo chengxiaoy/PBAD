@@ -131,6 +131,8 @@ def check_match(arg):
 
 def get_map(model):
     predictions = []
+    valid_loader = get_data_loader()[1]
+    df_valid = get_data_set()[1]
 
     for img, _, _ in tqdm(valid_loader):
         with torch.no_grad():

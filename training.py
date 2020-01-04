@@ -40,7 +40,7 @@ def criterion(prediction, mask, regr, size_average=True):
 def train_model(model, epoch, scheduler, optimizer):
     model.train()
     epoch_loss = 0
-
+    train_loader = get_data_loader()[0]
     for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(train_loader):
         img_batch = img_batch.to(Config.device)
         mask_batch = mask_batch.to(Config.device)
@@ -65,7 +65,7 @@ def train_model(model, epoch, scheduler, optimizer):
 def evaluate_model(model):
     model.eval()
     loss = 0
-
+    valid_loader = get_data_loader()[1]
     with torch.no_grad():
         for img_batch, mask_batch, regr_batch in valid_loader:
             img_batch = img_batch.to(Config.device)
