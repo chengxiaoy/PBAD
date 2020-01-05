@@ -23,6 +23,7 @@ def predict(model):
     test.to_csv(str(Config.expriment_id) + '_predictions.csv', index=False)
 
 if __name__ == '__main__':
+    Config.expriment_id = 7
     Config.USE_MASK = True
     Config.IMG_WIDTH = 1536
     Config.IMG_HEIGHT = 512
