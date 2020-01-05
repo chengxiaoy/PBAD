@@ -28,8 +28,6 @@ def criterion(prediction, mask, regr, size_average=True):
     pred_regr = prediction[:, 1:]
     regr_loss = (torch.abs(pred_regr - regr).sum(1) * mask).sum(1).sum(1) / mask.sum(1).sum(1)
     regr_loss = regr_loss.mean(0)
-    print("mask_loss :{}".format(mask_loss.item()))
-    print("regr_loss :{}".format(regr_loss.item()))
 
     # Sum
     loss = Config.MASK_WEIGHT * mask_loss + regr_loss
