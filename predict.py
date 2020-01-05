@@ -25,6 +25,6 @@ def predict(model):
 if __name__ == '__main__':
 
     model = get_model(Config.model_name)
-    model.load_state_dict(torch.load('1_model.pth'))
+    model.load_state_dict(torch.load('7_model.pth'))
     model.eval()
     predict(model)
