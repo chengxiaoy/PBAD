@@ -135,7 +135,7 @@ if __name__ == '__main__':
     Config.MODEL_SCALE = 1
     Config.FOCAL_ALPHA = 0.999
     Config.BATCH_SIZE = 8
-    Config.MASK_WEIGHT = 1000
+    Config.MASK_WEIGHT = 10
     Config.N_EPOCH = 30
     Config.USE_MASK = True
     model = get_model(Config.model_name)
