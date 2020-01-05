@@ -142,7 +142,7 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     # predict(model)
 
-    Config.expriment_id = 7
+    Config.expriment_id = 8
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic"
     Config.IMG_WIDTH = 1536
@@ -158,7 +158,7 @@ if __name__ == '__main__':
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     predict(model)
 
-    Config.expriment_id = 8
+    Config.expriment_id = 9
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_4"
     Config.MODEL_SCALE = 4
