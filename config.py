@@ -15,6 +15,6 @@ class Config():
     N_EPOCH = 20
     expriment_id = 1
     model_path = str(expriment_id) + '_model.pth'
-    MASK_WEIGHT = 100
+    MASK_WEIGHT = 1
     FOCAL_ALPHA = 0.5
     USE_MASK = False

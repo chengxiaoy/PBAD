@@ -28,6 +28,8 @@ def criterion(prediction, mask, regr, size_average=True):
     pred_regr = prediction[:, 1:]
     regr_loss = (torch.abs(pred_regr - regr).sum(1) * mask).sum(1).sum(1) / mask.sum(1).sum(1)
     regr_loss = regr_loss.mean(0)
+    print("mask_loss :{}".format(mask_loss.item()))
+    print("regr_loss :{}".format(regr_loss.item()))
 
     # Sum
     loss = Config.MASK_WEIGHT * mask_loss + regr_loss
@@ -107,7 +109,6 @@ def training(model, optimizer, scheduler, n_epoch, writer):
 
 
 if __name__ == '__main__':
-
     # Config.expriment_id = 3
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     # model = get_model(Config.model_name)
@@ -131,7 +132,7 @@ if __name__ == '__main__':
     Config.expriment_id = 10
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_unet"
-    Config.MODEL_SCALE =1
+    Config.MODEL_SCALE = 1
     Config.FOCAL_ALPHA = 0.999
     Config.BATCH_SIZE = 8
     Config.MASK_WEIGHT = 1000
@@ -147,7 +148,7 @@ if __name__ == '__main__':
     Config.expriment_id = 11
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_unet"
-    Config.MODEL_SCALE =1
+    Config.MODEL_SCALE = 1
     Config.FOCAL_ALPHA = 0.99
     Config.BATCH_SIZE = 8
 
@@ -164,7 +165,7 @@ if __name__ == '__main__':
     Config.expriment_id = 12
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_unet"
-    Config.MODEL_SCALE =1
+    Config.MODEL_SCALE = 1
     Config.FOCAL_ALPHA = 0.9
     Config.BATCH_SIZE = 8
 
