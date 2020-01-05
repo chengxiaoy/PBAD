@@ -136,7 +136,6 @@ if __name__ == '__main__':
     Config.BATCH_SIZE = 8
     Config.MASK_WEIGHT = 1000
     Config.N_EPOCH = 30
-    Config.USE_MASK = True
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
