@@ -132,7 +132,10 @@ def check_match(arg):
 def get_map(model):
     predictions = []
     valid_loader = get_data_loader()[1]
-    df_valid = get_data_set()[1]
+
+    train = pd.read_csv(Config.DATA_PATH + 'train.csv')
+
+    df_train, df_valid = train_test_split(train, test_size=0.05, random_state=42)
 
     for img, _, _ in tqdm(valid_loader):
         with torch.no_grad():
