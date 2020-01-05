@@ -57,19 +57,18 @@ def get_data_set():
 
     df_train, df_valid = train_test_split(train, test_size=0.05, random_state=42)
     df_test = test
-    return df_train, df_valid, df_test
-
-
-def get_data_loader():
     train_images_dir = Config.DATA_PATH + 'train_images/{}.jpg'
     test_images_dir = Config.DATA_PATH + 'test_images/{}.jpg'
-
-    df_train, df_valid, df_test = get_data_set()
 
     # Create dataset objects
     train_dataset = CarDataset(df_train, train_images_dir, training=True)
     dev_dataset = CarDataset(df_valid, train_images_dir, training=False)
     test_dataset = CarDataset(df_test, test_images_dir, training=False)
+    return train_dataset, dev_dataset, test_dataset
+
+
+def get_data_loader():
+    train_dataset, dev_dataset, test_dataset = get_data_set()
 
     # Create data generators - they will produce batches
     train_loader = DataLoader(dataset=train_dataset, batch_size=Config.BATCH_SIZE, shuffle=True,
