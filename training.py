@@ -21,7 +21,7 @@ def criterion(prediction, mask, regr, size_average=True):
     # mask_loss = -mask_loss.mean(0).sum()
 
     # focal loss
-    mask_criterion = FocalLoss(alpha=0.5)
+    mask_criterion = FocalLoss(alpha=Config.FOCAL_ALPHA)
     mask_loss = mask_criterion(pred_mask, mask)
 
     # Regression L1 loss
@@ -136,6 +136,7 @@ if __name__ == '__main__':
     Config.BATCH_SIZE = 8
     Config.MASK_WEIGHT = 1000
     Config.N_EPOCH = 30
+    Config.USE_MASK = True
     model = get_model(Config.model_name)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
