@@ -5,6 +5,7 @@ from config import Config
 
 def predict(model):
     predictions = []
+    test_dataset = get_data_set()[2]
     test_loader = DataLoader(dataset=test_dataset, batch_size=4, shuffle=False, num_workers=4)
     model.eval()
 

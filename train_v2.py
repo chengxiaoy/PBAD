@@ -148,9 +148,10 @@ if __name__ == '__main__':
     Config.IMG_WIDTH = 1536
     Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
-    Config.N_EPOCH = 30
+    Config.N_EPOCH = 20
     Config.USE_MASK = True
     model = get_model(Config.model_name)
+    model.load_state_dict(torch.load('7_model.pth'))
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
