@@ -92,7 +92,7 @@ def training(model, optimizer, scheduler, n_epoch, writer):
     for epoch in range(n_epoch):
         train_loss = train_model(model, epoch, scheduler, optimizer)
         valid_loss, MAP = evaluate_model(model)
-        scheduler.step(valid_loss)
+        scheduler.step(MAP)
 
         writer.add_scalars('data/loss', {'train': train_loss, 'val': valid_loss}, epoch)
         writer.add_scalars('data/map', {'val': MAP}, epoch)
