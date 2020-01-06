@@ -23,11 +23,11 @@ def predict(model):
     test.to_csv(str(Config.expriment_id) + '_predictions.csv', index=False)
 
 if __name__ == '__main__':
-    Config.expriment_id = 7
+    Config.expriment_id = 8
     Config.USE_MASK = True
     Config.IMG_WIDTH = 1536
     Config.IMG_HEIGHT = 512
     model = get_model(Config.model_name)
-    model.load_state_dict(torch.load('7_model.pth'))
+    model.load_state_dict(torch.load('8_model.pth'))
     model.eval()
     predict(model)
