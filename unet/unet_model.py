@@ -94,7 +94,7 @@ class Decoder(nn.Module):
         decodes = self.layer4([decodes, skips[3]])
         decodes = self.layer5([decodes, None])
 
-        decodes4 = F.interpolate(decodes, x.size()[2:], mode='bilinear')
+        decodes4 = F.interpolate(decodes, x.size()[2:], mode='bilinear', align_corners=False)
         outputs = self.final(decodes4)
         return outputs
 
@@ -140,4 +140,3 @@ class UNet(nn.Module):
         x = self.up4(x, x1)
         logits = self.outc(x)
         return logits
-
