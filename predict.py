@@ -23,6 +23,9 @@ def predict(model):
     test.to_csv(str(Config.expriment_id) + '_predictions.csv', index=False)
 
 if __name__ == '__main__':
+
+
+    Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     Config.expriment_id = 8
     Config.USE_MASK = True
     Config.IMG_WIDTH = 1536
