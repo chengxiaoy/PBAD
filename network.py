@@ -1,7 +1,7 @@
 from efficientnet_pytorch import EfficientNet
 import numpy as np  # linear algebra
 from unet.unet_parts import *
-from unet.unet_model import UNet
+from unet.unet_model import UNet, UNet_EFF
 from config import Config
 
 
@@ -96,7 +96,7 @@ class MyUNet4(nn.Module):
 
         x = self.up1(feats, x4)
         x = self.up2(x, x3)
-        x = self.up3(x,x2)
+        x = self.up3(x, x2)
         x = self.outc(x)
         return x
 
@@ -108,6 +108,8 @@ def get_model(model_name):
         model = MyUNet4(Config.N_CLASS)
     if model_name == 'basic_unet':
         model = UNet(3, Config.N_CLASS)
+    if model_name == 'unet':
+        model = UNet_EFF("efficientnet-b0", 8)
     if Config.PARALLEL and str(Config.device) != 'cpu':
         model = torch.nn.DataParallel(model, device_ids=Config.device_ids)
     model = model.to(Config.device)
@@ -120,6 +122,6 @@ if __name__ == '__main__':
     # y = model(x)
     # print(y.size())
 
-    model = get_model('basic_unet')
+    model = get_model('unet')
     y = model(x)
     print(y.size())
