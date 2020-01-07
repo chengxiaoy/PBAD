@@ -12,7 +12,7 @@ plt.xlabel('Number of cars in image')
 plt.show()
 
 
-valid = pd.read_csv("predications.csv")
+valid = pd.read_csv("/Users/tezign/Downloads/11_predictions.csv")
 valid = valid.fillna("")
 lens = [len(str2coords(s)) for s in valid['PredictionString']]
 

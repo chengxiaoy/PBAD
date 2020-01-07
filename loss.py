@@ -1,6 +1,7 @@
 from torch import nn
 import torch.nn.functional as F
 import torch
+from torch.nn import Parameter
 import numpy as np
 from math import floor
 
@@ -20,13 +21,25 @@ class FocalLoss(nn.Module):
             BCE_loss = F.binary_cross_entropy(inputs, targets, reduce=False)
         pt = torch.exp(-BCE_loss)
 
-        alpha = self.alpha*targets+(1-self.alpha)*(1-targets)
+        alpha = self.alpha * targets + (1 - self.alpha) * (1 - targets)
         F_loss = alpha * (1 - pt) ** self.gamma * BCE_loss
 
         if self.reduce:
             return torch.mean(F_loss)
         else:
             return F_loss
+
+
+class UncertaintyLoss(nn.Module):
+    def __init__(self):
+        super(UncertaintyLoss, self).__init__()
+        self.log_vars = Parameter(torch.tensor(0, requires_grad=True, dtype=torch.float32), requires_grad=True)
+        self.log_vars_regr = Parameter(torch.tensor(0, requires_grad=True, dtype=torch.float32), requires_grad=True)
+
+    def forward(self, cls, regr):
+        return 1 / 2 * torch.exp(-self.log_vars) * cls + torch.exp(
+            -self.log_vars_regr) * regr + 1 / 2 * self.log_vars + 1 / 2 * self.log_vars_regr
+
 
 
 class FocalLoss_v2(nn.Module):

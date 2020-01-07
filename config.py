@@ -18,3 +18,4 @@ class Config():
     MASK_WEIGHT = 1
     FOCAL_ALPHA = 0.5
     USE_MASK = False
+    USE_UNCERTAIN_LOSS = False

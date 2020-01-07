@@ -7,12 +7,13 @@ from predict import predict
 from torch.optim.lr_scheduler import ExponentialLR, ReduceLROnPlateau, MultiStepLR
 from loss import FocalLoss
 from tensorboardX import SummaryWriter
+from loss import UncertaintyLoss
 
 
 # Gets the GPU if there is one, otherwise the cpu
 
 
-def criterion(prediction, mask, regr, size_average=True):
+def criterion(prediction, mask, regr, uncertain_loss, size_average=True):
     # Binary mask loss
     pred_mask = torch.sigmoid(prediction[:, 0])
 
@@ -30,13 +31,18 @@ def criterion(prediction, mask, regr, size_average=True):
     regr_loss = regr_loss.mean(0)
 
     # Sum
-    loss = Config.MASK_WEIGHT * mask_loss + regr_loss
+
+    if not Config.USE_UNCERTAIN_LOSS:
+        loss = Config.MASK_WEIGHT * mask_loss + regr_loss
+    else:
+        loss = uncertain_loss(Config.MASK_WEIGHT * mask_loss, regr_loss)
+
     if not size_average:
         loss *= prediction.shape[0]
     return loss
 
 
-def train_model(model, epoch, scheduler, optimizer):
+def train_model(model, epoch, loss, optimizer):
     model.train()
     epoch_loss = 0
 
@@ -49,7 +55,7 @@ def train_model(model, epoch, scheduler, optimizer):
 
         optimizer.zero_grad()
         output = model(img_batch)
-        loss = criterion(output, mask_batch, regr_batch)
+        loss = criterion(output, mask_batch, regr_batch, loss)
 
         loss.backward()
         optimizer.step()
@@ -63,7 +69,7 @@ def train_model(model, epoch, scheduler, optimizer):
     return epoch_loss
 
 
-def evaluate_model(model):
+def evaluate_model(model, loss):
     model.eval()
     loss = 0
     valid_loader = get_data_loader()[1]
@@ -74,7 +80,7 @@ def evaluate_model(model):
             mask_batch = mask_batch.to(Config.device)
             regr_batch = regr_batch.to(Config.device)
             output = model(img_batch)
-            loss += criterion(output, mask_batch, regr_batch, size_average=False).item()
+            loss += criterion(output, mask_batch, regr_batch, loss, size_average=False).item()
 
     loss /= len(valid_loader.dataset)
     MAP = get_map(model)
@@ -84,14 +90,14 @@ def evaluate_model(model):
     return loss, MAP
 
 
-def training(model, optimizer, scheduler, n_epoch, writer):
+def training(model, optimizer, scheduler, n_epoch, writer, uncertain_loss):
     min_loss = float('inf')
     max_MAP = 0.0
     best_model_wts = copy.deepcopy(model.state_dict())
 
     for epoch in range(n_epoch):
-        train_loss = train_model(model, epoch, scheduler, optimizer)
-        valid_loss, MAP = evaluate_model(model)
+        train_loss = train_model(model, epoch, uncertain_loss, optimizer)
+        valid_loss, MAP = evaluate_model(model, uncertain_loss)
         scheduler.step(MAP)
 
         writer.add_scalars('data/loss', {'train': train_loss, 'val': valid_loss}, epoch)
@@ -159,44 +165,47 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     # predict(model)
 
-    # Config.expriment_id = 10
-    # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-    # Config.model_name = "basic_4"
-    # Config.MODEL_SCALE = 4
-    # # Config.IMG_WIDTH = 1536
-    # # Config.IMG_HEIGHT = 512
-    # Config.FOCAL_ALPHA = 0.75
-    # Config.N_EPOCH = 30
-    # Config.MASK_WEIGHT = 100
-    #
-    # Config.USE_MASK = True
-    # model = get_model(Config.model_name)
-    # optimizer = optim.Adam(model.parameters(), lr=0.001)
-    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
-    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
-    # predict(model)
-
-
-    Config.expriment_id = 11
+    Config.expriment_id = 10_1
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_4"
     Config.MODEL_SCALE = 4
     # Config.IMG_WIDTH = 1536
     # Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
-    Config.N_EPOCH = 10
-    Config.MASK_WEIGHT = 200
-
+    Config.N_EPOCH = 30
+    Config.MASK_WEIGHT = 100
+    Config.USE_UNCERTAIN_LOSS = True
     Config.USE_MASK = True
     model = get_model(Config.model_name)
-    model.load_state_dict(torch.load('11_model.pth'))
-    optimizer = optim.AdamW(model.parameters(), lr=0.0001,weight_decay=0.01)
+    uncertain_loss = UncertaintyLoss().to(Config.device)
+
+    optimizer = optim.Adam([uncertain_loss.parameters(), model.parameters()], lr=0.001)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
+    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
+                     uncertain_loss=uncertain_loss)
     predict(model)
 
+    # Config.expriment_id = 11
+    # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+    # Config.model_name = "basic_4"
+    # Config.MODEL_SCALE = 4
+    # # Config.IMG_WIDTH = 1536
+    # # Config.IMG_HEIGHT = 512
+    # Config.FOCAL_ALPHA = 0.75
+    # Config.N_EPOCH = 10
+    # Config.MASK_WEIGHT = 200
+    # Config.USE_UNCERTAIN_LOSS = False
+    #
+    # Config.USE_MASK = True
+    # model = get_model(Config.model_name)
+    # model.load_state_dict(torch.load('11_model.pth'))
+    # optimizer = optim.AdamW(model.parameters(), lr=0.0001, weight_decay=0.01)
+    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
+    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
+    #                  uncertain_loss=None)
+    # predict(model)
 
     # Config.expriment_id = 12
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
@@ -216,7 +225,6 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     # predict(model)
 
-
     Config.expriment_id = 12
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_4"
@@ -226,13 +234,14 @@ if __name__ == '__main__':
     Config.FOCAL_ALPHA = 0.75
     Config.N_EPOCH = 30
     Config.MASK_WEIGHT = 500
-
+    Config.USE_UNCERTAIN_LOSS = False
     Config.USE_MASK = True
     model = get_model(Config.model_name)
-    optimizer = optim.AdamW(model.parameters(), lr=0.001,weight_decay=0.01)
+    optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
+    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
+                     uncertain_loss=None)
     predict(model)
 
     # Config.expriment_id = 9
@@ -250,7 +259,6 @@ if __name__ == '__main__':
     # lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     # predict(model)
-
 
     # Config.expriment_id = 10
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
