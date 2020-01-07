@@ -42,7 +42,7 @@ def criterion(prediction, mask, regr, uncertain_loss, size_average=True):
     return loss
 
 
-def train_model(model, epoch, loss, optimizer):
+def train_model(model, epoch, uncertain_loss, optimizer):
     model.train()
     epoch_loss = 0
 
@@ -55,7 +55,7 @@ def train_model(model, epoch, loss, optimizer):
 
         optimizer.zero_grad()
         output = model(img_batch)
-        loss = criterion(output, mask_batch, regr_batch, loss)
+        loss = criterion(output, mask_batch, regr_batch, uncertain_loss)
 
         loss.backward()
         optimizer.step()
@@ -69,7 +69,7 @@ def train_model(model, epoch, loss, optimizer):
     return epoch_loss
 
 
-def evaluate_model(model, loss):
+def evaluate_model(model, uncertain_loss):
     model.eval()
     loss = 0
     valid_loader = get_data_loader()[1]
@@ -80,7 +80,7 @@ def evaluate_model(model, loss):
             mask_batch = mask_batch.to(Config.device)
             regr_batch = regr_batch.to(Config.device)
             output = model(img_batch)
-            loss += criterion(output, mask_batch, regr_batch, loss, size_average=False).item()
+            loss += criterion(output, mask_batch, regr_batch, uncertain_loss, size_average=False).item()
 
     loss /= len(valid_loader.dataset)
     MAP = get_map(model)
