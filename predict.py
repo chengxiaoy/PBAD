@@ -26,11 +26,12 @@ if __name__ == '__main__':
 
 
     Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-    Config.expriment_id = 8
+    Config.expriment_id =11
     Config.USE_MASK = True
-    Config.IMG_WIDTH = 1536
-    Config.IMG_HEIGHT = 512
+    Config.model_name = "basic_4"
+    Config.MODEL_SCALE = 4
+
     model = get_model(Config.model_name)
-    model.load_state_dict(torch.load('8_model.pth'))
+    model.load_state_dict(torch.load('11_model.pth'))
     model.eval()
     predict(model)
