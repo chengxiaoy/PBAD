@@ -77,7 +77,8 @@ class Decoder(nn.Module):
         self.layer3 = DecoderBlock(in_channels[3] + out_channels[1], out_channels[2])
         self.layer4 = DecoderBlock(in_channels[4] + out_channels[2], out_channels[3])
         self.layer5 = DecoderBlock(out_channels[3], out_channels[4])
-
+        self.layer6 = Down(out_channels[-1], 32)
+        self.layer7 = Down(32, out_channels[-1])
         self.final = nn.Sequential(
             nn.Dropout(dropout),
             nn.Conv2d(out_channels[-1], num_classes, kernel_size=1)
@@ -94,8 +95,11 @@ class Decoder(nn.Module):
         decodes = self.layer4([decodes, skips[3]])
         decodes = self.layer5([decodes, None])
 
-        decodes4 = F.interpolate(decodes, x.size()[2:], mode='bilinear', align_corners=False)
-        outputs = self.final(decodes4)
+        # decodes4 = F.interpolate(decodes, x.size()[2:], mode='bilinear', align_corners=False)
+
+        decodes = self.layer6(decodes)
+        decodes = self.layer7(decodes)
+        outputs = self.final(decodes)
         return outputs
 
 

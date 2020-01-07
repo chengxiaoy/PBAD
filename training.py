@@ -130,14 +130,14 @@ if __name__ == '__main__':
     Config.expriment_id = 30
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "unet"
-    Config.MODEL_SCALE = 1
-    Config.FOCAL_ALPHA = 0.999
+    Config.MODEL_SCALE = 4
+    Config.FOCAL_ALPHA = 0.75
     Config.BATCH_SIZE = 8
-    Config.MASK_WEIGHT = 1000
+    Config.MASK_WEIGHT = 200
     Config.N_EPOCH = 30
     Config.USE_MASK = True
     model = get_model(Config.model_name)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
