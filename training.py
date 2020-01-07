@@ -127,7 +127,7 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer)
     # predict(model)
 
-    Config.expriment_id = 30
+    Config.expriment_id = 30_1
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "unet"
     Config.MODEL_SCALE = 4

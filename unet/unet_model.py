@@ -37,10 +37,13 @@ class DecoderBlock(nn.Module):
         super().__init__()
         self.up_sample = up_sample
 
-        self.block = nn.Sequential(
-            Conv3x3GNReLU(in_channels, out_channels),
-            Conv3x3GNReLU(out_channels, out_channels),
-        )
+        # self.block = nn.Sequential(
+        #     Conv3x3GNReLU(in_channels, out_channels),
+        #     Conv3x3GNReLU(out_channels, out_channels),
+        # )
+
+        self.block = DoubleConv(in_channels, out_channels)
+
 
     def forward(self, x):
         if isinstance(x, list) or isinstance(x, tuple):
