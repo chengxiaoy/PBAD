@@ -83,7 +83,7 @@ class Decoder(nn.Module):
         self.layer6 = Down(out_channels[-1], 32)
         self.layer7 = Down(32, out_channels[-1])
         self.final = nn.Sequential(
-            nn.Dropout(dropout),
+            # nn.Dropout(dropout),
             nn.Conv2d(out_channels[-1], num_classes, kernel_size=1)
         )
 
