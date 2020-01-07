@@ -37,9 +37,10 @@ class UncertaintyLoss(nn.Module):
         self.log_vars_regr = Parameter(torch.tensor(0, requires_grad=True, dtype=torch.float32), requires_grad=True)
 
     def forward(self, cls, regr):
+        # return 1 / 2 * torch.exp(-self.log_vars) * cls + torch.exp(
+        #     -self.log_vars_regr) * regr + 1 / 2 * self.log_vars + 1 / 2 * self.log_vars_regr
         return 1 / 2 * torch.exp(-self.log_vars) * cls + torch.exp(
-            -self.log_vars_regr) * regr + 1 / 2 * self.log_vars + 1 / 2 * self.log_vars_regr
-
+            -self.log_vars_regr) * regr + torch.exp(1 / 2 * self.log_vars) + torch.exp(1 / 2 * self.log_vars_regr)
 
 
 class FocalLoss_v2(nn.Module):
