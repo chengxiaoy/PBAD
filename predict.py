@@ -16,7 +16,7 @@ def predict(model):
         if Config.model_name == 'dla34':
             output = torch.cat((output[0]['mask'], output[0]['regr']), dim=1)
         elif Config.model_name == 'dla34_2':
-            output = torch.cat((output[0]['mask'], output[0]['xyz'],output[0]['rool']), dim=1)
+            output = torch.cat((output[0]['mask'], output[0]['xyz'],output[0]['roll']), dim=1)
         for out in output:
             coords = extract_coords(out)
             s = coords2str(coords)

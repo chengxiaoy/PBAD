@@ -89,7 +89,7 @@ def evaluate_model(model, uncertain_loss):
             if Config.model_name == 'dla34':
                 output = torch.cat((output[0]['mask'], output[0]['regr']), dim=1)
             elif Config.model_name == 'dla34_2':
-                output = torch.cat((output[0]['mask'], output[0]['xyz'], output[0]['rool']), dim=1)
+                output = torch.cat((output[0]['mask'], output[0]['xyz'], output[0]['roll']), dim=1)
             loss += criterion(output, mask_batch, regr_batch, uncertain_loss, size_average=False).item()
 
     loss /= len(valid_loader.dataset)
