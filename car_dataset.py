@@ -46,6 +46,8 @@ class CarDataset(Dataset):
 
             img0 = imread(img_name, True)
             img1 = imread(mask_path.format(idx), True)
+            if img1 == None:
+                img1 = np.zeros(img0.shape)
             img0 = np.concatenate((img0, img1[:, :, :1]), axis=2)
         else:
             img0 = imread(img_name, True)
