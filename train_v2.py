@@ -194,7 +194,7 @@ if __name__ == '__main__':
     # Config.IMG_WIDTH = 1536
     # Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
-    Config.N_EPOCH = 30
+    Config.N_EPOCH = 10
     Config.MASK_WEIGHT = 20
     Config.USE_UNCERTAIN_LOSS = True
     Config.USE_MASK = True
@@ -216,8 +216,8 @@ if __name__ == '__main__':
     # Config.IMG_WIDTH = 1536
     # Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
-    Config.N_EPOCH = 30
-    Config.MASK_WEIGHT = 2000
+    Config.N_EPOCH = 10
+    Config.MASK_WEIGHT = 1000
     Config.USE_UNCERTAIN_LOSS = True
     Config.USE_MASK = True
     model = get_model(Config.model_name)
