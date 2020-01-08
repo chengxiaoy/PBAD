@@ -249,9 +249,16 @@ def CreateMaskImages(imageName):
     try:
         imagemaskinv = cv2.bitwise_not(imagemask)
         res = cv2.bitwise_and(trainimage, trainimage, mask=imagemaskinv)
+        res = trainimage - res / 4
+        res = np.round(res).astype(np.uint8)
+        b, g, r = cv2.split(res)
+        res = cv2.merge([r, g, b])
+
+        # res = cv2.add(trainimage, np.zeros(np.shape(trainimage), dtype=np.uint8), mask=imagemaskinv)
 
         # cut upper half,because it doesn't contain cars.
         res = res[res.shape[0] // 2:]
+
         return res
     except:
         trainimage = trainimage[trainimage.shape[0] // 2:]
@@ -261,33 +268,33 @@ def CreateMaskImages(imageName):
 if __name__ == '__main__':
     trainImg = CreateMaskImages('ID_0a1cb53b1')
 
-    plt.figure(figsize=(16, 16))
+    plt.figure(figsize=(24, 24))
     plt.title('mask image')
     plt.imshow(trainImg)
     plt.show()
 
-    train = pd.read_csv(Config.DATA_PATH + 'train.csv')
-
-    img0 = imread(Config.DATA_PATH + 'train_images/' + train['ImageId'][0] + '.jpg')
-    img = preprocess_image(img0)
-
-    mask, regr = get_mask_and_regr(img0, train['PredictionString'][0])
-
-    print('img.shape', img.shape, 'std:', np.std(img))
-    print('mask.shape', mask.shape, 'std:', np.std(mask))
-    print('regr.shape', regr.shape, 'std:', np.std(regr))
-
-    plt.figure(figsize=(16, 16))
-    plt.title('Processed image')
-    plt.imshow(img)
-    plt.show()
-
-    plt.figure(figsize=(16, 16))
-    plt.title('Detection Mask')
-    plt.imshow(mask)
-    plt.show()
-
-    plt.figure(figsize=(16, 16))
-    plt.title('Yaw values')
-    plt.imshow(regr[:, :, -2])
-    plt.show()
+    # train = pd.read_csv(Config.DATA_PATH + 'train.csv')
+    #
+    # img0 = imread(Config.DATA_PATH + 'train_images/' + train['ImageId'][0] + '.jpg')
+    # img = preprocess_image(img0)
+    #
+    # mask, regr = get_mask_and_regr(img0, train['PredictionString'][0])
+    #
+    # print('img.shape', img.shape, 'std:', np.std(img))
+    # print('mask.shape', mask.shape, 'std:', np.std(mask))
+    # print('regr.shape', regr.shape, 'std:', np.std(regr))
+    #
+    # plt.figure(figsize=(16, 16))
+    # plt.title('Processed image')
+    # plt.imshow(img)
+    # plt.show()
+    #
+    # plt.figure(figsize=(16, 16))
+    # plt.title('Detection Mask')
+    # plt.imshow(mask)
+    # plt.show()
+    #
+    # plt.figure(figsize=(16, 16))
+    # plt.title('Yaw values')
+    # plt.imshow(regr[:, :, -2])
+    # plt.show()

@@ -5,6 +5,7 @@ from unet.unet_model import UNet, UNet_EFF
 from config import Config
 from models.networks.dlav0 import get_pose_net
 
+
 def get_mesh(batch_size, shape_x, shape_y):
     mg_x, mg_y = np.meshgrid(np.linspace(0, 1, shape_y), np.linspace(0, 1, shape_x))
     mg_x = np.tile(mg_x[None, None, :, :], [batch_size, 1, 1, 1]).astype('float32')
@@ -52,6 +53,51 @@ class MyUNet(nn.Module):
 
         x = self.up1(feats, x4)
         x = self.up2(x, x3)
+        x = self.outc(x)
+        return x
+
+
+class MyUNet4_V2(nn.Module):
+    '''Mixture of previous classes'''
+
+    def __init__(self, n_classes):
+        super(MyUNet4_V2, self).__init__()
+        self.base_model = EfficientNet.from_pretrained('efficientnet-b0')
+
+        self.conv0 = DoubleConv(4, 64)
+        self.conv1 = DoubleConv(64, 128)
+        self.conv2 = DoubleConv(128, 512)
+        self.conv3 = DoubleConv(512, 1024)
+
+        self.mp = nn.MaxPool2d(2)
+
+        self.up1 = Up(1280 + 1024, 512)
+        self.up2 = Up(512 + 512, 256)
+        self.up3 = Up(128 + 256, 256)
+        self.outc = nn.Conv2d(256, n_classes, 1)
+
+    def forward(self, x):
+        batch_size = x.shape[0]
+        mesh1 = get_mesh(batch_size, x.shape[2], x.shape[3])
+        # x0 = torch.cat([x, mesh1], 1)
+        x0 = x
+        x1 = self.mp(self.conv0(x0))
+        x2 = self.mp(self.conv1(x1))
+        x3 = self.mp(self.conv2(x2))
+        x4 = self.mp(self.conv3(x3))
+
+        x_center = x[:, :, :, Config.IMG_WIDTH // 8: -Config.IMG_WIDTH // 8]
+        feats = self.base_model.extract_features(x_center)
+        bg = torch.zeros([feats.shape[0], feats.shape[1], feats.shape[2], feats.shape[3] // 8]).to(Config.device)
+        feats = torch.cat([bg, feats, bg], 3)
+
+        # Add positional info
+        mesh2 = get_mesh(batch_size, feats.shape[2], feats.shape[3])
+        # feats = torch.cat([feats, mesh2], 1)
+
+        x = self.up1(feats, x4)
+        x = self.up2(x, x3)
+        x = self.up3(x, x2)
         x = self.outc(x)
         return x
 
@@ -105,7 +151,10 @@ def get_model(model_name):
     if model_name == 'basic':
         model = MyUNet(Config.N_CLASS)
     if model_name == 'basic_4':
-        model = MyUNet4(Config.N_CLASS)
+        if not Config.FOUR_CHANNEL:
+            model = MyUNet4(Config.N_CLASS)
+        else:
+            model = MyUNet4_V2(Config.N_CLASS)
     if model_name == 'basic_unet':
         model = UNet(3, Config.N_CLASS)
     if model_name == 'unet':

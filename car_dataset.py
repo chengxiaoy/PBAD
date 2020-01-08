@@ -38,6 +38,15 @@ class CarDataset(Dataset):
                 mask_path = Config.DATA_PATH + 'MaskTest/{}.jpg'
             img_name = mask_path.format(idx)
             img0 = imread(img_name, True)
+        elif Config.FOUR_CHANNEL:
+            if self.root_dir == Config.DATA_PATH + 'train_images/{}.jpg':
+                mask_path = Config.DATA_PATH + 'train_masks/{}.jpg'
+            else:
+                mask_path = Config.DATA_PATH + 'test_masks/{}.jpg'
+
+            img0 = imread(img_name, True)
+            img1 = imread(mask_path.format(idx), True)
+            img0 = np.concatenate((img0, img1[:, :, :1]), axis=2)
         else:
             img0 = imread(img_name, True)
 
