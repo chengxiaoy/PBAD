@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
     Config.expriment_id = 30_4
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-    Config.model_name = "unet"
+    Config.model_name = "dla34"
     Config.MODEL_SCALE = 4
     # Config.IMG_WIDTH = 1536
     # Config.IMG_HEIGHT = 512
