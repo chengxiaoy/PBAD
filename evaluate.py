@@ -141,6 +141,8 @@ def get_map(model):
         with torch.no_grad():
             output = model(img.to(Config.device))
         output = output.data.cpu().numpy()
+        if Config.model_name == 'dla34':
+            output = torch.cat((output[0]['mask'], output[0]['regr']), dim=1)
         for out in output:
             coords = extract_coords(out)
             s = coords2str(coords)

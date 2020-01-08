@@ -3,7 +3,7 @@ import numpy as np  # linear algebra
 from unet.unet_parts import *
 from unet.unet_model import UNet, UNet_EFF
 from config import Config
-
+from models.networks.dlav0 import get_pose_net
 
 def get_mesh(batch_size, shape_x, shape_y):
     mg_x, mg_y = np.meshgrid(np.linspace(0, 1, shape_y), np.linspace(0, 1, shape_x))
@@ -110,6 +110,8 @@ def get_model(model_name):
         model = UNet(3, Config.N_CLASS)
     if model_name == 'unet':
         model = UNet_EFF("efficientnet-b0", 8)
+    if model_name == 'dla34':
+        model = get_pose_net(34, {"mask": 1, "regr": 7})
     if Config.PARALLEL and str(Config.device) != 'cpu':
         model = torch.nn.DataParallel(model, device_ids=Config.device_ids)
     model = model.to(Config.device)
