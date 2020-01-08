@@ -156,7 +156,10 @@ def get_model(model_name):
         else:
             model = MyUNet4_V2(Config.N_CLASS)
     if model_name == 'basic_unet':
-        model = UNet(3, Config.N_CLASS)
+        if not Config.FOUR_CHANNEL:
+            model = UNet(3, Config.N_CLASS)
+        else:
+            model = UNet(4, Config.N_CLASS)
     if model_name == 'unet':
         model = UNet_EFF("efficientnet-b0", 8)
     if model_name == 'dla34':
