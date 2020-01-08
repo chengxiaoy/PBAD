@@ -161,7 +161,7 @@ if __name__ == '__main__':
     # predict(model)
 
 
-    Config.expriment_id = 30_4
+    Config.expriment_id = 30_5
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "dla34"
     Config.MODEL_SCALE = 4
@@ -175,7 +175,7 @@ if __name__ == '__main__':
     model = get_model(Config.model_name)
     uncertain_loss = UncertaintyLoss().to(Config.device)
     params = list(uncertain_loss.parameters()) + list(model.parameters())
-    optimizer = optim.AdamW(params, lr=0.0001, weight_decay=0.01)
+    optimizer = optim.AdamW(params, lr=0.001, weight_decay=0.01)
 
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
