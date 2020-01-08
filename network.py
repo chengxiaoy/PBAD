@@ -161,6 +161,8 @@ def get_model(model_name):
         model = UNet_EFF("efficientnet-b0", 8)
     if model_name == 'dla34':
         model = get_pose_net(34, {"mask": 1, "regr": 7})
+    if model_name == 'dla34_2':
+        model = get_pose_net(34, {"mask": 1, "xyz": 3, "roll": 4})
     if Config.PARALLEL and str(Config.device) != 'cpu':
         model = torch.nn.DataParallel(model, device_ids=Config.device_ids)
     model = model.to(Config.device)
