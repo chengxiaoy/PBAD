@@ -86,7 +86,7 @@ class MyUNet4_V2(nn.Module):
         x3 = self.mp(self.conv2(x2))
         x4 = self.mp(self.conv3(x3))
 
-        x_center = x[:, :, :, Config.IMG_WIDTH // 8: -Config.IMG_WIDTH // 8]
+        x_center = x[:, :3, :, Config.IMG_WIDTH // 8: -Config.IMG_WIDTH // 8]
         feats = self.base_model.extract_features(x_center)
         bg = torch.zeros([feats.shape[0], feats.shape[1], feats.shape[2], feats.shape[3] // 8]).to(Config.device)
         feats = torch.cat([bg, feats, bg], 3)
