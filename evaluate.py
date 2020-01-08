@@ -143,7 +143,7 @@ def get_map(model):
             if Config.model_name == 'dla34':
                 output = torch.cat((output[0]['mask'], output[0]['regr']), dim=1)
             elif Config.model_name == 'dla34_2':
-                output = torch.cat((output[0]['mask'], output[0]['xyz'], output[0]['rool']), dim=1)
+                output = torch.cat((output[0]['mask'], output[0]['xyz'], output[0]['roll']), dim=1)
         output = output.data.cpu().numpy()
 
         for out in output:
