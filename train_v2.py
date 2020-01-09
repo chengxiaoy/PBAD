@@ -339,7 +339,7 @@ if __name__ == '__main__':
     # lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
     scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[12, 20], gamma=0.1)
 
-    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
+    model = training(model, optimizer, scheduler=scheduler, n_epoch=Config.N_EPOCH, writer=writer,
                      uncertain_loss=uncertain_loss)
     predict(model)
 

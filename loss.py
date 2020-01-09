@@ -30,6 +30,35 @@ class FocalLoss(nn.Module):
             return F_loss
 
 
+class FocalLossGaussian(nn.Module):
+
+    def forward(self, inputs, targets):
+
+        points = np.argwhere(targets > 0)
+        h_list = []
+        w_list = []
+        for h, w in points:
+            h_list.append(h)
+            w_list.append(w)
+
+        heatmap()
+
+
+        if self.logits:
+            BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduce=False)
+        else:
+            BCE_loss = F.binary_cross_entropy(inputs, targets, reduce=False)
+        pt = torch.exp(-BCE_loss)
+
+        alpha = self.alpha * targets + (1 - self.alpha) * (1 - targets)
+        F_loss = alpha * (1 - pt) ** self.gamma * BCE_loss
+
+        if self.reduce:
+            return torch.mean(F_loss)
+        else:
+            return F_loss
+
+
 class UncertaintyLoss(nn.Module):
     def __init__(self):
         super(UncertaintyLoss, self).__init__()
@@ -102,3 +131,12 @@ def heatmap(u, v, output_width=128, output_height=128, sigma=1):
         output[:, :] = np.maximum(output[:, :], heatmap[:, :])
 
     return output
+
+
+def _nms(heat, kernel=3):
+    pad = (kernel - 1) // 2
+
+    hmax = nn.functional.max_pool2d(
+        heat, (kernel, kernel), stride=1, padding=pad)
+    keep = (hmax == heat).float()
+    return heat * keep
