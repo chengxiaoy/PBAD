@@ -656,8 +656,10 @@ def get_pose_net(num_layers, heads, head_conv=256, down_ratio=4):
 if __name__ == '__main__':
     x = torch.randn(4, 3, 320, 1024)
 
-    model = get_pose_net(34, {"mask": 1, "regr": 7})
+    # model = get_pose_net(34, {"mask": 1, "regr": 7})
+
+    model = dla34(pretrained=True, return_levels=True)
 
     y = model(x)
-    y = torch.cat((y[0]['mask'],y[0]['regr']),dim=1)
+    y = torch.cat((y[0]['mask'], y[0]['regr']), dim=1)
     print(y.shape)
