@@ -390,7 +390,7 @@ def dla102x(pretrained=None, **kwargs):  # DLA-X-102
     model = DLA([1, 1, 1, 3, 4, 1], [16, 32, 128, 256, 512, 1024],
                 block=BottleneckX, residual_root=True, **kwargs)
     if pretrained is not None:
-        model.load_pretrained_model(pretrained, 'dla102x')
+        model.load_pretrained_model(data='imagenet', name='dla102x', hash='ad62be81')
     return model
 
 
@@ -658,7 +658,7 @@ if __name__ == '__main__':
 
     # model = get_pose_net(34, {"mask": 1, "regr": 7})
 
-    model = dla34(pretrained=True, return_levels=True)
+    model = dla102x(pretrained=True, return_levels=True)
 
     y = model(x)
     y = torch.cat((y[0]['mask'], y[0]['regr']), dim=1)

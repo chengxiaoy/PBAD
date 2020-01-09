@@ -3,7 +3,8 @@ import numpy as np  # linear algebra
 from unet.unet_parts import *
 from unet.unet_model import UNet, UNet_EFF
 from config import Config
-from models.networks.dlav0 import get_pose_net,dla34
+from models.networks.dlav0 import get_pose_net, dla34, dla102x
+from img_preprocessing import imread
 
 
 def get_mesh(batch_size, shape_x, shape_y):
@@ -12,6 +13,13 @@ def get_mesh(batch_size, shape_x, shape_y):
     mg_y = np.tile(mg_y[None, None, :, :], [batch_size, 1, 1, 1]).astype('float32')
     mesh = torch.cat([torch.tensor(mg_x).to(Config.device), torch.tensor(mg_y).to(Config.device)], 1)
     return mesh
+
+
+def get_mask(item_ids, shape_x, shape_y):
+    for item_id in item_ids:
+        img1 = imread(mask_path.format(idx), True)
+        if img1 is None:
+            img1 = np.zeros((shape_x))
 
 
 class MyUNet(nn.Module):
@@ -60,18 +68,23 @@ class MyUNet(nn.Module):
 class MyUNet4_V2(nn.Module):
     '''Mixture of previous classes'''
 
-    def __init__(self, input_channels, n_classes):
+    def __init__(self, base_model, input_channels, n_classes):
         super(MyUNet4_V2, self).__init__()
-        self.base_model = dla34(pretrained=True, return_levels=True)
+        if base_model == 'dla34':
+            self.base_model = dla34(pretrained=True, return_levels=True)
+        elif base_model == 'dla102x':
+            self.base_model = dla102x(pretrained=True, return_levels=True)
 
         self.conv0 = DoubleConv(input_channels, 64)
         self.conv1 = DoubleConv(64, 128)
         self.conv2 = DoubleConv(128, 512)
         self.conv3 = DoubleConv(512, 1024)
-
         self.mp = nn.MaxPool2d(2)
 
-        self.up1 = Up(512 + 1024, 512)
+        if base_model == 'dla34':
+            self.up1 = Up(512 + 1024, 512)
+        elif base_model == 'dla34':
+            self.up1 = Up(1024 + 1024, 512)
         self.up2 = Up(512 + 512, 256)
         self.up3 = Up(128 + 256, 256)
         self.outc = nn.Conv2d(256, n_classes, 1)
@@ -158,9 +171,16 @@ def get_model(model_name):
 
     if model_name == "basic_4_dla_34":
         if not Config.FOUR_CHANNEL:
-            model = MyUNet4_V2(3, Config.N_CLASS)
+            model = MyUNet4_V2('dla34', 3, Config.N_CLASS)
         else:
-            model = MyUNet4_V2(4, Config.N_CLASS)
+            model = MyUNet4_V2('dla34', 4, Config.N_CLASS)
+
+    if model_name == "basic_4_dla_102x":
+        if not Config.FOUR_CHANNEL:
+            model = MyUNet4_V2('dla102x', 3, Config.N_CLASS)
+        else:
+            model = MyUNet4_V2('dla102x', 4, Config.N_CLASS)
+
     if model_name == 'basic_unet':
         if not Config.FOUR_CHANNEL:
             model = UNet(3, Config.N_CLASS)
@@ -168,10 +188,12 @@ def get_model(model_name):
             model = UNet(4, Config.N_CLASS)
     if model_name == 'unet':
         model = UNet_EFF("efficientnet-b0", 8)
-    if model_name == 'dla34':
-        model = get_pose_net(34, {"mask": 1, "regr": 7})
+    # if model_name == 'dla34':
+    #     model = get_pose_net(34, {"mask": 1, "regr": 7})
     if model_name == 'dla34_2':
         model = get_pose_net(34, {"mask": 1, "xyz": 3, "roll": 4})
+    if model_name == 'dla102_x':
+        model = get_pose_net("102x", {"mask": 1, "xyz": 3, "roll": 4})
     if Config.PARALLEL and str(Config.device) != 'cpu':
         model = torch.nn.DataParallel(model, device_ids=Config.device_ids)
     model = model.to(Config.device)
