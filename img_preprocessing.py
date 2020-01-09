@@ -195,11 +195,10 @@ def clear_duplicates(coords):
 
 def extract_coords(prediction, flipped=False, thr=0.0):
     logits = prediction[0]
-    regr_output = prediction[1:].data.cpu().numpy()
+    regr_output = prediction[1:]
     if Config.USE_GAUSSIAN:
-        logits = _nms(logits)
+        logits = _nms(torch.tensor(logits).unsqueeze(0).unsqueeze(0)).squeeze(0).squeeze(0).data.cpu().numpy()
 
-    logits = logits.data.cpu().numpy()
 
 
     points = np.argwhere(logits > thr)
