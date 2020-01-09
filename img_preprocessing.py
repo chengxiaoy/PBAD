@@ -245,6 +245,7 @@ def get_mask_and_regr(img, labels, flip=False):
                 regr[x, y] = [regr_dict[n] for n in sorted(regr_dict)]
     else:
         mask = heatmap(ys, xs, Config.IMG_HEIGHT // Config.MODEL_SCALE, Config.IMG_WIDTH // Config.MODEL_SCALE)[:,:,0]
+        mask = mask.astype(np.float32)
 
         for x, y, regr_dict in zip(xs, ys, coords):
             x, y = y, x
