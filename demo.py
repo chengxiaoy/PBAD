@@ -3,20 +3,24 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-train = pd.read_csv("pku-autonomous-driving/train.csv")
-lens = [len(str2coords(s)) for s in train['PredictionString']]
 
-plt.figure(figsize=(15, 6))
-sns.countplot(lens)
-plt.xlabel('Number of cars in image')
-plt.show()
+# "pku-autonomous-driving/train.csv"
+
+def get_lens(file_path):
+    train = pd.read_csv(file_path)
+    train = train.fillna("")
+    lens = [len(str2coords(s)) for s in train['PredictionString']]
+    return lens
 
 
-valid = pd.read_csv("/Users/tezign/Downloads/121_predictions.csv")
-valid = valid.fillna("")
-lens = [len(str2coords(s)) for s in valid['PredictionString']]
+def show(lens):
+    plt.figure(figsize=(15, 6))
+    sns.countplot(lens)
+    plt.xlabel('Number of cars in image')
+    plt.show()
 
-plt.figure(figsize=(15, 6))
-sns.countplot(lens)
-plt.xlabel('Number of cars in image')
-plt.show()
+
+train_lens = get_lens("pku-autonomous-driving/train.csv")
+test_lens = get_lens("121_predictions.csv")
+test_lens_new = get_lens("121_predictions_new.csv")
+test_old = get_lens('/Users/tezign/Downloads/102_predictions.csv')

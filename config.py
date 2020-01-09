@@ -20,3 +20,4 @@ class Config():
     USE_MASK = False
     USE_UNCERTAIN_LOSS = False
     FOUR_CHANNEL = False
+    USE_GAUSSIAN = False
