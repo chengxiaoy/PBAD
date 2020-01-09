@@ -3,7 +3,7 @@ from network import *
 from config import Config
 
 
-def predict(model):
+def predict(model, thr=0.0):
     predictions = []
     test_dataset = get_data_set()[2]
     test_loader = DataLoader(dataset=test_dataset, batch_size=4, shuffle=False, num_workers=4)
@@ -17,7 +17,7 @@ def predict(model):
         output = output.data.cpu().numpy()
 
         for out in output:
-            coords = extract_coords(out)
+            coords = extract_coords(out, thr)
             s = coords2str(coords)
             predictions.append(s)
 
@@ -25,10 +25,8 @@ def predict(model):
     test['PredictionString'] = predictions
     test.to_csv(str(Config.expriment_id) + '_predictions.csv', index=False)
 
+
 if __name__ == '__main__':
-
-
-
     Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     Config.expriment_id = 12_1
     Config.model_name = "basic_4"
@@ -43,4 +41,4 @@ if __name__ == '__main__':
     model = get_model(Config.model_name)
     model.load_state_dict(torch.load('121_model.pth'))
 
-    predict(model)
+    predict(model,0.1)

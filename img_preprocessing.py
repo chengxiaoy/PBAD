@@ -192,10 +192,10 @@ def clear_duplicates(coords):
     return [c for c in coords if c['confidence'] > 0]
 
 
-def extract_coords(prediction, flipped=False):
+def extract_coords(prediction, flipped=False, thr=0.0):
     logits = prediction[0]
     regr_output = prediction[1:]
-    points = np.argwhere(logits > 0)
+    points = np.argwhere(logits > thr)
     col_names = sorted(['x', 'y', 'z', 'yaw', 'pitch_sin', 'pitch_cos', 'roll'])
     coords = []
     for r, c in points:
