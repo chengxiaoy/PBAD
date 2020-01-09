@@ -142,7 +142,7 @@ def get_map(model):
             output = model(img.to(Config.device))
             if Config.model_name.startswith('dla'):
                 output = torch.cat((output[0]['mask'], output[0]['xyz'], output[0]['roll']), dim=1)
-        output = output.data.cpu().numpy()
+        # output = output.data.cpu().numpy()
 
         for out in output:
             coords = extract_coords(out)

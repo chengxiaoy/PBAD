@@ -195,9 +195,12 @@ def clear_duplicates(coords):
 
 def extract_coords(prediction, flipped=False, thr=0.0):
     logits = prediction[0]
-    regr_output = prediction[1:]
+    regr_output = prediction[1:].data.cpu().numpy()
     if Config.USE_GAUSSIAN:
         logits = _nms(logits)
+
+    logits = logits.data.cpu().numpy()
+
 
     points = np.argwhere(logits > thr)
     col_names = sorted(['x', 'y', 'z', 'yaw', 'pitch_sin', 'pitch_cos', 'roll'])
