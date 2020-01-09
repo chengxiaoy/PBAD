@@ -4,6 +4,7 @@ import torch
 from torch.nn import Parameter
 import numpy as np
 from math import floor
+from config import Config
 
 
 class FocalLoss(nn.Module):
@@ -15,34 +16,10 @@ class FocalLoss(nn.Module):
         self.reduce = reduce
 
     def forward(self, inputs, targets):
-        if self.logits:
-            BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduce=False)
-        else:
-            BCE_loss = F.binary_cross_entropy(inputs, targets, reduce=False)
-        pt = torch.exp(-BCE_loss)
 
-        alpha = self.alpha * targets + (1 - self.alpha) * (1 - targets)
-        F_loss = alpha * (1 - pt) ** self.gamma * BCE_loss
-
-        if self.reduce:
-            return torch.mean(F_loss)
-        else:
-            return F_loss
-
-
-class FocalLossGaussian(nn.Module):
-
-    def forward(self, inputs, targets):
-
-        points = np.argwhere(targets > 0)
-        h_list = []
-        w_list = []
-        for h, w in points:
-            h_list.append(h)
-            w_list.append(w)
-
-        heatmap()
-
+        if Config.USE_GAUSSIAN:
+            focal_v2 = FocalLoss_v2()
+            return focal_v2(inputs, targets)
 
         if self.logits:
             BCE_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduce=False)
@@ -109,34 +86,3 @@ def _neg_loss(pred, gt):
     else:
         loss = loss - (pos_loss + neg_loss) / num_pos
     return loss
-
-
-def heatmap(u, v, output_width=128, output_height=128, sigma=1):
-    def get_heatmap(p_x, p_y):
-        X1 = np.linspace(1, output_width, output_width)
-        Y1 = np.linspace(1, output_height, output_height)
-        [X, Y] = np.meshgrid(X1, Y1)
-        X = X - floor(p_x)
-        Y = Y - floor(p_y)
-        D2 = X * X + Y * Y
-        E2 = 2.0 * sigma ** 2
-        Exponent = D2 / E2
-        heatmap = np.exp(-Exponent)
-        heatmap = heatmap[:, :, np.newaxis]
-        return heatmap
-
-    output = np.zeros((128, 128, 1))
-    for i in range(len(u)):
-        heatmap = get_heatmap(u[i], v[i])
-        output[:, :] = np.maximum(output[:, :], heatmap[:, :])
-
-    return output
-
-
-def _nms(heat, kernel=3):
-    pad = (kernel - 1) // 2
-
-    hmax = nn.functional.max_pool2d(
-        heat, (kernel, kernel), stride=1, padding=pad)
-    keep = (hmax == heat).float()
-    return heat * keep

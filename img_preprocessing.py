@@ -24,6 +24,7 @@ from torchvision import transforms, utils
 
 from math import sin, cos
 from config import Config
+from math import floor
 
 # From camera.zip
 camera_matrix = np.array([[2304.5479, 0, 1686.2379],
@@ -195,6 +196,9 @@ def clear_duplicates(coords):
 def extract_coords(prediction, flipped=False, thr=0.0):
     logits = prediction[0]
     regr_output = prediction[1:]
+    if Config.USE_GAUSSIAN:
+        logits = _nms(logits)
+
     points = np.argwhere(logits > thr)
     col_names = sorted(['x', 'y', 'z', 'yaw', 'pitch_sin', 'pitch_cos', 'roll'])
     coords = []
@@ -227,20 +231,71 @@ def get_mask_and_regr(img, labels, flip=False):
         dtype='float32')
     coords = str2coords(labels)
     xs, ys = get_img_coords(labels)
-    for x, y, regr_dict in zip(xs, ys, coords):
-        x, y = y, x
-        x = (x - img.shape[0] // 2) * Config.IMG_HEIGHT / (img.shape[0] // 2) / Config.MODEL_SCALE
-        x = np.round(x).astype('int')
-        y = (y + img.shape[1] // 6) * Config.IMG_WIDTH / (img.shape[1] * 4 / 3) / Config.MODEL_SCALE
-        y = np.round(y).astype('int')
-        if 0 <= x < Config.IMG_HEIGHT // Config.MODEL_SCALE and 0 <= y < Config.IMG_WIDTH // Config.MODEL_SCALE:
-            mask[x, y] = 1
-            regr_dict = _regr_preprocess(regr_dict, flip)
-            regr[x, y] = [regr_dict[n] for n in sorted(regr_dict)]
+
+    if not Config.USE_GAUSSIAN:
+        for x, y, regr_dict in zip(xs, ys, coords):
+            x, y = y, x
+            x = (x - img.shape[0] // 2) * Config.IMG_HEIGHT / (img.shape[0] // 2) / Config.MODEL_SCALE
+            x = np.round(x).astype('int')
+            y = (y + img.shape[1] // 6) * Config.IMG_WIDTH / (img.shape[1] * 4 / 3) / Config.MODEL_SCALE
+            y = np.round(y).astype('int')
+            if 0 <= x < Config.IMG_HEIGHT // Config.MODEL_SCALE and 0 <= y < Config.IMG_WIDTH // Config.MODEL_SCALE:
+                mask[x, y] = 1
+                regr_dict = _regr_preprocess(regr_dict, flip)
+                regr[x, y] = [regr_dict[n] for n in sorted(regr_dict)]
+    else:
+        mask = heatmap(ys, xs, Config.IMG_HEIGHT // Config.MODEL_SCALE, Config.IMG_WIDTH // Config.MODEL_SCALE)[:,:,0]
+
+        for x, y, regr_dict in zip(xs, ys, coords):
+            x, y = y, x
+            x = (x - img.shape[0] // 2) * Config.IMG_HEIGHT / (img.shape[0] // 2) / Config.MODEL_SCALE
+            x = np.round(x).astype('int')
+            y = (y + img.shape[1] // 6) * Config.IMG_WIDTH / (img.shape[1] * 4 / 3) / Config.MODEL_SCALE
+            y = np.round(y).astype('int')
+            if 0 <= x < Config.IMG_HEIGHT // Config.MODEL_SCALE and 0 <= y < Config.IMG_WIDTH // Config.MODEL_SCALE:
+                regr_dict = _regr_preprocess(regr_dict, flip)
+                regr[x, y] = [regr_dict[n] for n in sorted(regr_dict)]
+
     if flip:
         mask = np.array(mask[:, ::-1])
         regr = np.array(regr[:, ::-1])
     return mask, regr
+
+
+def heatmap(u, v, output_height=128, output_width=128, sigma=1):
+    def get_heatmap(p_x, p_y):
+        X1 = np.linspace(1, output_width, output_width)
+        Y1 = np.linspace(1, output_height, output_height)
+        [X, Y] = np.meshgrid(X1, Y1)
+        X = X - floor(p_x)
+        Y = Y - floor(p_y)
+        D2 = X * X + Y * Y
+        E2 = 2.0 * sigma ** 2
+        Exponent = D2 / E2
+        heatmap = np.exp(-Exponent)
+        heatmap = heatmap[:, :, np.newaxis]
+        return heatmap
+
+    output = np.zeros((output_height,output_width, 1))
+    for i in range(len(u)):
+        x = (u[i] - img.shape[0] // 2) * Config.IMG_HEIGHT / (img.shape[0] // 2) / Config.MODEL_SCALE
+        x = np.round(x).astype('int')
+        y = (v[i] + img.shape[1] // 6) * Config.IMG_WIDTH / (img.shape[1] * 4 / 3) / Config.MODEL_SCALE
+        y = np.round(y).astype('int')
+
+        heatmap = get_heatmap(y, x)
+        output[:, :] = np.maximum(output[:, :], heatmap[:, :])
+
+    return output
+
+
+def _nms(heat, kernel=3):
+    pad = (kernel - 1) // 2
+
+    hmax = nn.functional.max_pool2d(
+        heat, (kernel, kernel), stride=1, padding=pad)
+    keep = (hmax == heat).float()
+    return heat * keep
 
 
 def CreateMaskImages(imageName):
@@ -266,33 +321,47 @@ def CreateMaskImages(imageName):
 
 
 if __name__ == '__main__':
-    trainImg = CreateMaskImages('ID_0a1cb53b1')
+    # trainImg = CreateMaskImages('ID_0a1cb53b1')
+    #
+    # plt.figure(figsize=(24, 24))
+    # plt.title('mask image')
+    # plt.imshow(trainImg)
+    # plt.show()
+    Config.USE_GAUSSIAN = True
 
-    plt.figure(figsize=(24, 24))
-    plt.title('mask image')
-    plt.imshow(trainImg)
-    plt.show()
+    train = pd.read_csv(Config.DATA_PATH + 'train.csv')
 
-    # train = pd.read_csv(Config.DATA_PATH + 'train.csv')
+    img0 = imread(Config.DATA_PATH + 'train_images/' + train['ImageId'][0] + '.jpg')
+    img_ = preprocess_image(img0)
     #
-    # img0 = imread(Config.DATA_PATH + 'train_images/' + train['ImageId'][0] + '.jpg')
-    # img = preprocess_image(img0)
-    #
-    # mask, regr = get_mask_and_regr(img0, train['PredictionString'][0])
-    #
-    # print('img.shape', img.shape, 'std:', np.std(img))
-    # print('mask.shape', mask.shape, 'std:', np.std(mask))
-    # print('regr.shape', regr.shape, 'std:', np.std(regr))
+    mask, regr = get_mask_and_regr(img0, train['PredictionString'][0])
+
+    print('img.shape', img_.shape, 'std:', np.std(img_))
+    print('mask.shape', mask.shape, 'std:', np.std(mask))
+    print('regr.shape', regr.shape, 'std:', np.std(regr))
+
+    Config.USE_GAUSSIAN = False
+
+    mask1, _ = get_mask_and_regr(img0, train['PredictionString'][0])
+
+
     #
     # plt.figure(figsize=(16, 16))
     # plt.title('Processed image')
     # plt.imshow(img)
     # plt.show()
     #
-    # plt.figure(figsize=(16, 16))
-    # plt.title('Detection Mask')
-    # plt.imshow(mask)
-    # plt.show()
+    plt.figure(figsize=(16, 16))
+    plt.title('heatmap')
+    plt.imshow(mask)
+    plt.show()
+
+
+    plt.figure(figsize=(16, 16))
+    plt.title('Detection Mask')
+    plt.imshow(mask1)
+    plt.show()
+
     #
     # plt.figure(figsize=(16, 16))
     # plt.title('Yaw values')
