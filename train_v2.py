@@ -409,7 +409,7 @@ if __name__ == '__main__':
     Config.MODEL_SCALE = 4
     Config.IMG_WIDTH = 1536
     Config.IMG_HEIGHT = 512
-    Config.FOCAL_ALPHA = 0.75
+    Config.FOCAL_ALPHA = 0.9
     Config.N_EPOCH = 30
     Config.MASK_WEIGHT = 500
     uncertain_loss = UncertaintyLoss().to(Config.device)
