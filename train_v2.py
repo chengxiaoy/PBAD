@@ -378,7 +378,7 @@ if __name__ == '__main__':
     # Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
     Config.N_EPOCH = 30
-    Config.MASK_WEIGHT = 1000
+    Config.MASK_WEIGHT = 200
     Config.USE_UNCERTAIN_LOSS = False
     Config.USE_MASK = True
     Config.USE_GAUSSIAN = True
