@@ -200,6 +200,8 @@ def extract_coords(prediction, flipped=False, thr=0.0):
         logits = _nms(torch.tensor(logits).unsqueeze(0).unsqueeze(0)).squeeze(0).squeeze(0).data.cpu().numpy()
 
     points = np.argwhere(logits > thr)
+    print("points_len:{}".format(len(points)))
+
     col_names = sorted(['x', 'y', 'z', 'yaw', 'pitch_sin', 'pitch_cos', 'roll'])
     coords = []
     for r, c in points:
@@ -322,8 +324,6 @@ def CreateMaskImages(imageName):
 
 
 if __name__ == '__main__':
-
-
     train = pd.read_csv(Config.DATA_PATH + 'train.csv')
 
     trainimage = cv2.imread(Config.DATA_PATH + "/train_images/" + train['ImageId'][0] + '.jpg')
@@ -336,7 +336,6 @@ if __name__ == '__main__':
     plt.show()
     cv2.imwrite(Config.DATA_PATH + "MaskTest/" + train['ImageId'][0] + ".jpg", res)
 
-
     # trainImg = CreateMaskImages('ID_0a1cb53b1')
     #
     # plt.figure(figsize=(24, 24))
@@ -344,7 +343,6 @@ if __name__ == '__main__':
     # plt.imshow(trainImg)
     # plt.show()
     Config.USE_GAUSSIAN = True
-
 
     img0 = imread(Config.DATA_PATH + 'train_images/' + train['ImageId'][0] + '.jpg')
     img_ = preprocess_image(img0)

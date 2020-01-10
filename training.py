@@ -12,18 +12,18 @@ from loss import UncertaintyLoss
 
 # Gets the GPU if there is one, otherwise the cpu
 
-def hourglass_criterion(predictions, mask, regr, uncertain_loss, size_average=True):
+def hourglass_criterion(predictions, mask, regr, uncertain_loss, batch_idx, size_average=True):
     if Config.model_name == 'hourglass':
         sum_loss = 0.0
         for idx in range(len(predictions)):
             output = torch.cat((predictions[idx]['mp'], predictions[idx]['xyz'], predictions[idx]['roll']), dim=1)
-            loss = criterion(output, mask, regr, uncertain_loss, size_average)
+            loss = criterion(output, mask, regr, uncertain_loss, batch_idx, size_average)
 
             sum_loss += loss / len(predictions)
         return sum_loss
 
 
-def criterion(prediction, mask, regr, uncertain_loss, size_average=True):
+def criterion(prediction, mask, regr, uncertain_loss, batch_idx, size_average=True):
     # Binary mask loss
     pred_mask = torch.sigmoid(prediction[:, 0])
 
@@ -40,8 +40,9 @@ def criterion(prediction, mask, regr, uncertain_loss, size_average=True):
     regr_loss = (torch.abs(pred_regr - regr).sum(1) * mask).sum(1).sum(1) / mask.sum(1).sum(1)
     regr_loss = regr_loss.mean(0)
 
-    print("mask loss{}".format(mask_loss))
-    print("regr loss{}".format(regr_loss))
+    if batch_idx % 500 == 0:
+        print("mask loss{}".format(mask_loss))
+        print("regr loss{}".format(regr_loss))
 
     # Sum
 
@@ -62,6 +63,8 @@ def train_model(model, epoch, uncertain_loss, optimizer):
     train_loader = get_data_loader()[0]
 
     for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(tqdm(train_loader)):
+
+
         img_batch = img_batch.to(Config.device)
         mask_batch = mask_batch.to(Config.device)
         regr_batch = regr_batch.to(Config.device)
@@ -72,9 +75,9 @@ def train_model(model, epoch, uncertain_loss, optimizer):
             output = torch.cat((output[0]['mp'], output[0]['xyz'], output[0]['roll']), dim=1)
 
         if Config.model_name == 'hourglass':
-            loss = hourglass_criterion(output, mask_batch, regr_batch, uncertain_loss)
+            loss = hourglass_criterion(output, mask_batch, regr_batch, uncertain_loss, batch_idx)
         else:
-            loss = criterion(output, mask_batch, regr_batch, uncertain_loss)
+            loss = criterion(output, mask_batch, regr_batch, uncertain_loss, batch_idx)
 
         loss.backward()
         optimizer.step()
@@ -106,7 +109,6 @@ def evaluate_model(model, uncertain_loss):
                 loss += hourglass_criterion(output, mask_batch, regr_batch, uncertain_loss)
             else:
                 loss += criterion(output, mask_batch, regr_batch, uncertain_loss)
-
 
     loss /= len(valid_loader.dataset)
     MAP = get_map(model)
@@ -226,8 +228,6 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
-
-
 
     # Config.expriment_id = 30_61
     #

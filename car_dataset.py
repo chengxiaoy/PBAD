@@ -52,8 +52,8 @@ class CarDataset(Dataset):
         else:
             img0 = imread(img_name, True)
 
-        if Config.USE_MASK:
-            img0[np.where(np.sum(img0, axis=2) == 0)] = [255, 255, 255]
+        # if Config.USE_MASK:
+        #     img0[np.where(np.sum(img0, axis=2) == 0)] = [255, 255, 255]
 
         img = preprocess_image(img0, flip=flip)
         img = np.rollaxis(img, 2, 0)
