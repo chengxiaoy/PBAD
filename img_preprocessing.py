@@ -199,8 +199,6 @@ def extract_coords(prediction, flipped=False, thr=0.0):
     if Config.USE_GAUSSIAN:
         logits = _nms(torch.tensor(logits).unsqueeze(0).unsqueeze(0)).squeeze(0).squeeze(0).data.cpu().numpy()
 
-
-
     points = np.argwhere(logits > thr)
     col_names = sorted(['x', 'y', 'z', 'yaw', 'pitch_sin', 'pitch_cos', 'roll'])
     coords = []
@@ -246,7 +244,7 @@ def get_mask_and_regr(img, labels, flip=False):
                 regr_dict = _regr_preprocess(regr_dict, flip)
                 regr[x, y] = [regr_dict[n] for n in sorted(regr_dict)]
     else:
-        mask = heatmap(ys, xs, Config.IMG_HEIGHT // Config.MODEL_SCALE, Config.IMG_WIDTH // Config.MODEL_SCALE)[:,:,0]
+        mask = heatmap(ys, xs, Config.IMG_HEIGHT // Config.MODEL_SCALE, Config.IMG_WIDTH // Config.MODEL_SCALE)[:, :, 0]
         mask = mask.astype(np.float32)
 
         for x, y, regr_dict in zip(xs, ys, coords):
@@ -279,14 +277,14 @@ def heatmap(u, v, output_height=128, output_width=128, sigma=1):
         heatmap = heatmap[:, :, np.newaxis]
         return heatmap
 
-    output = np.zeros((output_height,output_width, 1))
+    output = np.zeros((output_height, output_width, 1))
     for i in range(len(u)):
         x = (u[i] - img.shape[0] // 2) * Config.IMG_HEIGHT / (img.shape[0] // 2) / Config.MODEL_SCALE
         x = np.round(x).astype('int')
         y = (v[i] + img.shape[1] // 6) * Config.IMG_WIDTH / (img.shape[1] * 4 / 3) / Config.MODEL_SCALE
         y = np.round(y).astype('int')
 
-        heatmap = get_heatmap(y+1, x+1)
+        heatmap = get_heatmap(y + 1, x + 1)
         output[:, :] = np.maximum(output[:, :], heatmap[:, :])
 
     return output
@@ -324,6 +322,21 @@ def CreateMaskImages(imageName):
 
 
 if __name__ == '__main__':
+
+
+    train = pd.read_csv(Config.DATA_PATH + 'train.csv')
+
+    trainimage = cv2.imread(Config.DATA_PATH + "/train_images/" + train['ImageId'][0] + '.jpg')
+    imagemask = cv2.imread(Config.DATA_PATH + "/train_masks/" + train['ImageId'][0] + ".jpg", 0)
+    imagemaskinv = cv2.bitwise_not(imagemask)
+    res = cv2.bitwise_and(trainimage, trainimage, mask=imagemaskinv)
+    res[np.where(np.sum(res, axis=2) == 0)] = [255, 255, 255]
+    res = np.array(res[:, :, ::-1])
+    plt.imshow(res)
+    plt.show()
+    cv2.imwrite(Config.DATA_PATH + "MaskTest/" + train['ImageId'][0] + ".jpg", res)
+
+
     # trainImg = CreateMaskImages('ID_0a1cb53b1')
     #
     # plt.figure(figsize=(24, 24))
@@ -332,7 +345,6 @@ if __name__ == '__main__':
     # plt.show()
     Config.USE_GAUSSIAN = True
 
-    train = pd.read_csv(Config.DATA_PATH + 'train.csv')
 
     img0 = imread(Config.DATA_PATH + 'train_images/' + train['ImageId'][0] + '.jpg')
     img_ = preprocess_image(img0)
@@ -346,7 +358,6 @@ if __name__ == '__main__':
     Config.USE_GAUSSIAN = False
 
     mask1, _ = get_mask_and_regr(img0, train['PredictionString'][0])
-
 
     #
     # plt.figure(figsize=(16, 16))
