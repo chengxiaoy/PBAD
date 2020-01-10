@@ -378,14 +378,14 @@ if __name__ == '__main__':
     # Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
     Config.N_EPOCH = 30
-    Config.MASK_WEIGHT = 200
+    Config.MASK_WEIGHT = 1000
     Config.USE_UNCERTAIN_LOSS = False
     Config.USE_MASK = True
     Config.USE_GAUSSIAN = True
     model = get_model(Config.model_name)
     uncertain_loss = UncertaintyLoss().to(Config.device)
     params = list(uncertain_loss.parameters()) + list(model.parameters())
-    optimizer = optim.AdamW(params, lr=0.01, weight_decay=0.01)
+    optimizer = optim.AdamW(params, lr=0.001, weight_decay=0.01)
 
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
