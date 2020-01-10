@@ -250,9 +250,12 @@ def get_model(model_name):
     # if model_name == 'dla34':
     #     model = get_pose_net(34, {"mask": 1, "regr": 7})
     if model_name == 'dla34_2':
-        model = get_pose_net(34, {"mask": 1, "xyz": 3, "roll": 4})
+        model = get_pose_net(34, {"mp": 1, "xyz": 3, "roll": 4})
+    if model_name == 'hourglass':
+
+        model = get_pose_net(34, {"mp": 1, "xyz": 3, "roll": 4})
     if model_name == 'dla102_x':
-        model = get_pose_net("102x", {"mask": 1, "xyz": 3, "roll": 4})
+        model = get_pose_net("102x", {"mp": 1, "xyz": 3, "roll": 4})
     if Config.PARALLEL and str(Config.device) != 'cpu':
         model = torch.nn.DataParallel(model, device_ids=Config.device_ids)
     model = model.to(Config.device)
