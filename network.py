@@ -5,6 +5,7 @@ from unet.unet_model import UNet, UNet_EFF
 from config import Config
 from models.networks.dlav0 import get_pose_net, dla34, dla102x
 from img_preprocessing import imread
+from models.networks.hourglass import get_large_hourglass_net
 
 
 def get_mesh(batch_size, shape_x, shape_y):
@@ -13,13 +14,6 @@ def get_mesh(batch_size, shape_x, shape_y):
     mg_y = np.tile(mg_y[None, None, :, :], [batch_size, 1, 1, 1]).astype('float32')
     mesh = torch.cat([torch.tensor(mg_x).to(Config.device), torch.tensor(mg_y).to(Config.device)], 1)
     return mesh
-
-
-def get_mask(item_ids, shape_x, shape_y):
-    for item_id in item_ids:
-        img1 = imread(mask_path.format(idx), True)
-        if img1 is None:
-            img1 = np.zeros((shape_x))
 
 
 class MyUNet(nn.Module):
@@ -70,56 +64,6 @@ class MyUNet4_V2(nn.Module):
 
     def __init__(self, base_model, input_channels, n_classes):
         super(MyUNet4_V2, self).__init__()
-        if base_model == 'dla34':
-            self.base_model = dla34(pretrained=True, return_levels=True)
-        elif base_model == 'dla102x':
-            self.base_model = dla102x(pretrained=True, return_levels=True)
-
-        self.conv0 = DoubleConv(input_channels, 64)
-        self.conv1 = DoubleConv(64, 128)
-        self.conv2 = DoubleConv(128, 512)
-        self.conv3 = DoubleConv(512, 1024)
-        self.mp = nn.MaxPool2d(2)
-
-        if base_model == 'dla34':
-            self.up1 = Up(512 + 1024, 512)
-        elif base_model == 'dla34':
-            self.up1 = Up(1024 + 1024, 512)
-        self.up2 = Up(512 + 512, 256)
-        self.up3 = Up(128 + 256, 256)
-        self.outc = nn.Conv2d(256, n_classes, 1)
-
-    def forward(self, x):
-        batch_size = x.shape[0]
-        mesh1 = get_mesh(batch_size, x.shape[2], x.shape[3])
-        # x0 = torch.cat([x, mesh1], 1)
-        x0 = x
-        x1 = self.mp(self.conv0(x0))
-        x2 = self.mp(self.conv1(x1))
-        x3 = self.mp(self.conv2(x2))
-        x4 = self.mp(self.conv3(x3))
-
-        x_center = x[:, :3, :, Config.IMG_WIDTH // 8: -Config.IMG_WIDTH // 8]
-        feats = self.base_model(x_center)[5]
-        bg = torch.zeros([feats.shape[0], feats.shape[1], feats.shape[2], feats.shape[3] // 8]).to(Config.device)
-        feats = torch.cat([bg, feats, bg], 3)
-
-        # Add positional info
-        mesh2 = get_mesh(batch_size, feats.shape[2], feats.shape[3])
-        # feats = torch.cat([feats, mesh2], 1)
-
-        x = self.up1(feats, x4)
-        x = self.up2(x, x3)
-        x = self.up3(x, x2)
-        x = self.outc(x)
-        return x
-
-
-class MyUNet4_V3(nn.Module):
-    '''Mixture of previous classes'''
-
-    def __init__(self, base_model, input_channels, n_classes):
-        super(MyUNet4_V3, self).__init__()
         if base_model == 'dla34':
             self.base_model = dla34(pretrained=True, return_levels=True)
         elif base_model == 'dla102x':
@@ -252,8 +196,7 @@ def get_model(model_name):
     if model_name == 'dla34_2':
         model = get_pose_net(34, {"mp": 1, "xyz": 3, "roll": 4})
     if model_name == 'hourglass':
-
-        model = get_pose_net(34, {"mp": 1, "xyz": 3, "roll": 4})
+        model = get_large_hourglass_net(None, {"mp": 1, "xyz": 3, "roll": 4}, None)
     if model_name == 'dla102_x':
         model = get_pose_net("102x", {"mp": 1, "xyz": 3, "roll": 4})
     if Config.PARALLEL and str(Config.device) != 'cpu':
@@ -263,11 +206,11 @@ def get_model(model_name):
 
 
 if __name__ == '__main__':
-    x = torch.randn(4, 3, 320, 1024)
+    x = torch.randn(4, 3, 512, 1536)
     # model = get_model('basic')
     # y = model(x)
     # print(y.size())
 
-    model = get_model('basic_4_dla_34')
+    model = get_model('hourglass')
     y = model(x)
     print(y.size())

@@ -14,6 +14,10 @@ def predict(model, thr=0.0):
             output = model(img.to(Config.device))
         if Config.model_name.startswith('dla'):
             output = torch.cat((output[0]['mp'], output[0]['xyz'], output[0]['roll']), dim=1)
+
+        if Config.model_name == 'hourglass':
+            output = torch.cat((output[-1]['mp'], output[-1]['xyz'], output[-1]['roll']), dim=1)
+
         output = output.data.cpu().numpy()
 
         for out in output:
