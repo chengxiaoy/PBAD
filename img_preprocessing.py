@@ -286,7 +286,7 @@ def heatmap(u, v, output_height=128, output_width=128, sigma=1):
         y = (v[i] + img.shape[1] // 6) * Config.IMG_WIDTH / (img.shape[1] * 4 / 3) / Config.MODEL_SCALE
         y = np.round(y).astype('int')
 
-        heatmap = get_heatmap(y, x)
+        heatmap = get_heatmap(y+1, x+1)
         output[:, :] = np.maximum(output[:, :], heatmap[:, :])
 
     return output
@@ -354,16 +354,16 @@ if __name__ == '__main__':
     # plt.imshow(img)
     # plt.show()
     #
-    plt.figure(figsize=(16, 16))
-    plt.title('heatmap')
-    plt.imshow(mask)
-    plt.show()
-
-
-    plt.figure(figsize=(16, 16))
-    plt.title('Detection Mask')
-    plt.imshow(mask1)
-    plt.show()
+    # plt.figure(figsize=(16, 16))
+    # plt.title('heatmap')
+    # plt.imshow(mask)
+    # plt.show()
+    #
+    #
+    # plt.figure(figsize=(16, 16))
+    # plt.title('Detection Mask')
+    # plt.imshow(mask1)
+    # plt.show()
 
     #
     # plt.figure(figsize=(16, 16))

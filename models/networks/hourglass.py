@@ -315,7 +315,7 @@ def get_large_hourglass_net(num_layers, heads, head_conv):
 
 
 if __name__ == '__main__':
-    x = torch.randn(4, 3, 512, 1024)
+    x = torch.randn(4, 3, 512, 1536)
 
     # model = get_pose_net(34, {"mask": 1, "regr": 7})
 
