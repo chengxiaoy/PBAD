@@ -64,7 +64,6 @@ def train_model(model, epoch, uncertain_loss, optimizer):
 
     for batch_idx, (img_batch, mask_batch, regr_batch) in enumerate(tqdm(train_loader)):
 
-
         img_batch = img_batch.to(Config.device)
         mask_batch = mask_batch.to(Config.device)
         regr_batch = regr_batch.to(Config.device)
@@ -106,9 +105,10 @@ def evaluate_model(model, uncertain_loss):
                 output = torch.cat((output[0]['mp'], output[0]['xyz'], output[0]['roll']), dim=1)
 
             if Config.model_name == 'hourglass':
-                loss += hourglass_criterion(output, mask_batch, regr_batch, uncertain_loss)
+                loss += hourglass_criterion(output, mask_batch, regr_batch, uncertain_loss, batch_idx=1,
+                                            size_average=False)
             else:
-                loss += criterion(output, mask_batch, regr_batch, uncertain_loss)
+                loss += criterion(output, mask_batch, regr_batch, uncertain_loss, batch_idx=1, size_average=False)
 
     loss /= len(valid_loader.dataset)
     MAP = get_map(model)
