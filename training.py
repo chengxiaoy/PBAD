@@ -30,6 +30,9 @@ def criterion(prediction, mask, regr, uncertain_loss, size_average=True):
     regr_loss = (torch.abs(pred_regr - regr).sum(1) * mask).sum(1).sum(1) / mask.sum(1).sum(1)
     regr_loss = regr_loss.mean(0)
 
+    print("mask loss{}".format(mask_loss))
+    print("regr loss{}".format(regr_loss))
+
     # Sum
 
     if not Config.USE_UNCERTAIN_LOSS:
