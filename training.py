@@ -301,18 +301,18 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
     #
-    Config.expriment_id = 10_9
+    Config.expriment_id = 15
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-    Config.model_name = "basic_4"
+    Config.model_name = "hourglass"
     Config.MODEL_SCALE = 4
-    # Config.IMG_WIDTH = 1536
-    # Config.IMG_HEIGHT = 512
+    Config.IMG_WIDTH = 1536
+    Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
     Config.N_EPOCH = 30
-    Config.MASK_WEIGHT = 200
+    Config.MASK_WEIGHT = 500
     Config.USE_UNCERTAIN_LOSS = False
     Config.USE_MASK = True
-    Config.USE_GAUSSIAN = True
+    Config.USE_GAUSSIAN = False
     model = get_model(Config.model_name)
     uncertain_loss = UncertaintyLoss().to(Config.device)
     params = list(uncertain_loss.parameters()) + list(model.parameters())
