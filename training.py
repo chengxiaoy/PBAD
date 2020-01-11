@@ -301,7 +301,7 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
     #
-    Config.expriment_id = 15
+    Config.expriment_id = 15_1
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "hourglass"
     Config.MODEL_SCALE = 4
