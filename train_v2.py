@@ -368,7 +368,7 @@ if __name__ == '__main__':
 
     #
     #
-    Config.expriment_id = 30_16
+    Config.expriment_id = 30_18
     Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
@@ -379,7 +379,7 @@ if __name__ == '__main__':
     # Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
     Config.N_EPOCH = 10
-    Config.MASK_WEIGHT = 500
+    Config.MASK_WEIGHT = 0.1
     Config.USE_UNCERTAIN_LOSS = False
     Config.USE_MASK = True
     Config.USE_GAUSSIAN = True
@@ -395,7 +395,7 @@ if __name__ == '__main__':
     predict(model)
     #
     #
-    Config.expriment_id = 30_17
+    Config.expriment_id = 30_19
     Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
@@ -406,7 +406,7 @@ if __name__ == '__main__':
     # Config.IMG_HEIGHT = 512
     Config.FOCAL_ALPHA = 0.75
     Config.N_EPOCH = 10
-    Config.MASK_WEIGHT = 1
+    Config.MASK_WEIGHT = 10
     Config.USE_UNCERTAIN_LOSS = True
     Config.USE_MASK = True
     Config.USE_GAUSSIAN = True
