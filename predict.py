@@ -50,4 +50,4 @@ if __name__ == '__main__':
     model = get_model(Config.model_name)
     model.load_state_dict(torch.load('1221_model.pth'))
 
-    predict(model, 0.1)
+    predict(model, 0.3)
