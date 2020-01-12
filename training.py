@@ -345,19 +345,19 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
 
-    Config.expriment_id = 12_21
+    Config.expriment_id = 17
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_4"
     Config.MODEL_SCALE = 4
     Config.IMG_WIDTH = 1536
     Config.IMG_HEIGHT = 512
-    Config.FOCAL_ALPHA = 0.9
-    Config.N_EPOCH = 30
+    Config.FOCAL_ALPHA = 0.8
+    Config.N_EPOCH = 40
     Config.MASK_WEIGHT = 500
     uncertain_loss = UncertaintyLoss().to(Config.device)
     Config.USE_MASK = True
     model = get_model(Config.model_name)
-    model.load_state_dict(torch.load('122_model.pth'))
+    # model.load_state_dict(torch.load('122_model.pth'))
 
     optimizer = optim.AdamW(model.parameters(), lr=0.0001, weight_decay=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)

@@ -1,9 +1,9 @@
 import numpy as np
 import joblib
-from car_dataset import *
 from config import Config
+import pandas as pd
 
-def str2coords(s, names=['confi', 'yaw', 'pitch', 'roll', 'x', 'y', 'z']):
+def str2coords(s, names=['yaw', 'pitch', 'roll', 'x', 'y', 'z', 'confidence']):
     '''
     Input:
         s: PredictionString (e.g. from train dataframe)
@@ -13,20 +13,31 @@ def str2coords(s, names=['confi', 'yaw', 'pitch', 'roll', 'x', 'y', 'z']):
     '''
     coords = []
     for l in np.array(s.split()).reshape([-1, 7]):
-        coords.append(dict(zip(names, l.astype('float'))))
-        if 'id' in coords[-1]:
-            coords[-1]['id'] = int(coords[-1]['id'])
+        coord = dict(zip(names, l.astype('float')))
+        if coord['confidence'] > 0.58:
+            coords.append(coord)
     return coords
 
 
-outputs = joblib.load("outputs.pkl")
+def coords2str(coords, names=['yaw', 'pitch', 'roll', 'x', 'y', 'z', 'confidence']):
+    s = []
+    for c in coords:
+        for n in names:
+            s.append(str(c.get(n, 0)))
+    return ' '.join(s)
+
+
+predict = pd.read_csv('1221_predictions.csv')
 predictions = []
-thr = 0.3
-for output in outputs:
-    for out in output:
-        coords = extract_coords(out, thr)
-        s = coords2str(coords)
-        predictions.append(s)
+for ss in predict['PredictionString']:
+    if ss is np.nan or ss is '':
+        predictions.append('')
+    else:
+        coords = str2coords(ss)
+        predictions.append(coords2str(coords))
+
+
+
 
 test = pd.read_csv(Config.DATA_PATH + 'sample_submission.csv')
 test['PredictionString'] = predictions
