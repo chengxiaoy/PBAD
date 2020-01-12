@@ -32,17 +32,16 @@ def predict(model, thr=0.0):
 
 if __name__ == '__main__':
     Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-    Config.expriment_id = 12_1
+    Config.expriment_id = 12_21
     Config.model_name = "basic_4"
     Config.MODEL_SCALE = 4
     Config.IMG_WIDTH = 1536
     Config.IMG_HEIGHT = 512
-    Config.FOCAL_ALPHA = 0.75
+    Config.FOCAL_ALPHA = 0.9
     Config.N_EPOCH = 30
-    Config.MASK_WEIGHT = 200
-    Config.USE_UNCERTAIN_LOSS = True
+    Config.MASK_WEIGHT = 500
     Config.USE_MASK = True
     model = get_model(Config.model_name)
-    model.load_state_dict(torch.load('121_model.pth'))
+    model.load_state_dict(torch.load('1221_model.pth'))
 
     predict(model,0.1)

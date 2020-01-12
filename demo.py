@@ -23,4 +23,4 @@ def show(lens):
 train_lens = get_lens("pku-autonomous-driving/train.csv")
 test_lens = get_lens("121_predictions.csv")
 test_lens_new = get_lens("121_predictions_new.csv")
-test_old = get_lens('/Users/tezign/Downloads/102_predictions.csv')
+test_old = get_lens('/Users/tezign/Downloads/1221_predictions.csv')
