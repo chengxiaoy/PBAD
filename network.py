@@ -158,7 +158,7 @@ class MyUNet4(nn.Module):
 
     def __init__(self, input_channels, n_classes):
         super(MyUNet4, self).__init__()
-        self.base_model = EfficientNet.from_pretrained('efficientnet-b7')
+        self.base_model = EfficientNet.from_pretrained('efficientnet-b0')
 
         self.conv0 = DoubleConv(input_channels, 64)
         self.conv1 = DoubleConv(64, 128)
