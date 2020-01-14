@@ -200,7 +200,7 @@ def extract_coords(prediction, flipped=False, thr=0.0):
         logits = _nms(torch.tensor(logits).unsqueeze(0).unsqueeze(0)).squeeze(0).squeeze(0).data.cpu().numpy()
 
     points = np.argwhere(logits > thr)
-    print("points_len:{}".format(len(points)))
+    # print("points_len:{}".format(len(points)))
 
     col_names = sorted(['x', 'y', 'z', 'yaw', 'pitch_sin', 'pitch_cos', 'roll'])
     coords = []
