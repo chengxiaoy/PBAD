@@ -114,7 +114,7 @@ class MyUNet4(nn.Module):
 
     def __init__(self, input_channels, n_classes):
         super(MyUNet4, self).__init__()
-        self.base_model = EfficientNet.from_pretrained('efficientnet-b0')
+        self.base_model = EfficientNet.from_pretrained('efficientnet-b7')
 
         self.conv0 = DoubleConv(input_channels, 64)
         self.conv1 = DoubleConv(64, 128)
@@ -191,6 +191,9 @@ def get_model(model_name):
             model = UNet(4, Config.N_CLASS)
     if model_name == 'unet':
         model = UNet_EFF("efficientnet-b0", 8)
+
+    if model_name == 'unet_7':
+        model = UNet_EFF("efficientnet-b7", 8)
     # if model_name == 'dla34':
     #     model = get_pose_net(34, {"mask": 1, "regr": 7})
     if model_name == 'dla34_2':
