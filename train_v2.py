@@ -425,7 +425,7 @@ if __name__ == '__main__':
 
     Config.expriment_id = 18
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-    Config.model_name = "basic"
+    Config.model_name = "basic_b7"
     Config.MODEL_SCALE = 8
     Config.IMG_WIDTH = 1024
     Config.IMG_HEIGHT = 320
