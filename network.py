@@ -21,7 +21,7 @@ class MyUNet(nn.Module):
 
     def __init__(self, n_classes):
         super(MyUNet, self).__init__()
-        self.base_model = EfficientNet.from_pretrained('efficientnet-b0')
+        self.base_model = EfficientNet.from_pretrained('efficientnet-b7')
 
         self.conv0 = DoubleConv(3, 64)
         self.conv1 = DoubleConv(64, 128)
