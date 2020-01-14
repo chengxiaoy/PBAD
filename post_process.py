@@ -14,7 +14,7 @@ def str2coords(s, names=['yaw', 'pitch', 'roll', 'x', 'y', 'z', 'confidence']):
     coords = []
     for l in np.array(s.split()).reshape([-1, 7]):
         coord = dict(zip(names, l.astype('float')))
-        if coord['confidence'] > 0.58:
+        if coord['confidence'] > 0.54:
             coords.append(coord)
     return coords
 
@@ -27,7 +27,7 @@ def coords2str(coords, names=['yaw', 'pitch', 'roll', 'x', 'y', 'z', 'confidence
     return ' '.join(s)
 
 
-predict = pd.read_csv('1221_predictions.csv')
+predict = pd.read_csv('171_predictions.csv')
 predictions = []
 for ss in predict['PredictionString']:
     if ss is np.nan or ss is '':
