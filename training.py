@@ -442,7 +442,7 @@ if __name__ == '__main__':
     # predict(model)
     #
 
-    Config.expriment_id = 19_1
+    Config.expriment_id = 19_2
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_4"
     Config.MODEL_SCALE = 4
@@ -455,7 +455,7 @@ if __name__ == '__main__':
     Config.USE_MASK = False
     Config.FOUR_CHANNEL = True
     model = get_model(Config.model_name)
-    # model.load_state_dict(torch.load('17_model.pth'))
+    model.load_state_dict(torch.load('19_model.pth'))
 
     optimizer = optim.AdamW(model.parameters(), lr=0.0001, weight_decay=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
@@ -464,7 +464,7 @@ if __name__ == '__main__':
                      uncertain_loss=uncertain_loss)
     predict(model)
 
-    Config.expriment_id = 19_2
+    Config.expriment_id = 19_3
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_4"
     Config.MODEL_SCALE = 4
@@ -477,7 +477,7 @@ if __name__ == '__main__':
     Config.USE_MASK = False
     Config.FOUR_CHANNEL = True
     model = get_model(Config.model_name)
-    # model.load_state_dict(torch.load('17_model.pth'))
+    model.load_state_dict(torch.load('19_model.pth'))
 
     optimizer = optim.AdamW(model.parameters(), lr=0.0001, weight_decay=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
