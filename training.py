@@ -413,28 +413,73 @@ if __name__ == '__main__':
     # predict(model)
 
 
-    Config.expriment_id = 30_19
-    Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    # Config.expriment_id = 30_19
+    # Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    #
+    # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+    # Config.model_name = "dla34_2"
+    # Config.MODEL_SCALE = 4
+    # Config.BATCH_SIZE = 4
+    # # Config.IMG_WIDTH = 1536
+    # # Config.IMG_HEIGHT = 512
+    # Config.FOCAL_ALPHA = 0.75
+    # Config.N_EPOCH = 30
+    # Config.MASK_WEIGHT = 0.1
+    # Config.USE_UNCERTAIN_LOSS = False
+    # Config.USE_MASK = True
+    # Config.USE_GAUSSIAN = True
+    # model = get_model(Config.model_name)
+    # # model.load_state_dict(torch.load('3018_model.pth'))
+    #
+    # uncertain_loss = UncertaintyLoss().to(Config.device)
+    # params = list(uncertain_loss.parameters()) + list(model.parameters())
+    # optimizer = optim.AdamW(params, lr=0.0001)
+    #
+    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
+    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
+    #                  uncertain_loss=uncertain_loss)
+    # predict(model)
+    #
 
+    Config.expriment_id = 19_1
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-    Config.model_name = "dla34_2"
+    Config.model_name = "basic_4"
     Config.MODEL_SCALE = 4
-    Config.BATCH_SIZE = 4
-    # Config.IMG_WIDTH = 1536
-    # Config.IMG_HEIGHT = 512
-    Config.FOCAL_ALPHA = 0.75
-    Config.N_EPOCH = 30
-    Config.MASK_WEIGHT = 0.1
-    Config.USE_UNCERTAIN_LOSS = False
-    Config.USE_MASK = True
-    Config.USE_GAUSSIAN = True
-    model = get_model(Config.model_name)
-    # model.load_state_dict(torch.load('3018_model.pth'))
-
+    Config.IMG_WIDTH = 1536
+    Config.IMG_HEIGHT = 512
+    Config.FOCAL_ALPHA = 0.8
+    Config.N_EPOCH = 10
+    Config.MASK_WEIGHT = 100
     uncertain_loss = UncertaintyLoss().to(Config.device)
-    params = list(uncertain_loss.parameters()) + list(model.parameters())
-    optimizer = optim.AdamW(params, lr=0.0001)
+    Config.USE_MASK = False
+    Config.FOUR_CHANNEL = True
+    model = get_model(Config.model_name)
+    # model.load_state_dict(torch.load('17_model.pth'))
 
+    optimizer = optim.AdamW(model.parameters(), lr=0.0001, weight_decay=0.01)
+    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
+    model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
+                     uncertain_loss=uncertain_loss)
+    predict(model)
+
+    Config.expriment_id = 19_2
+    writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+    Config.model_name = "basic_4"
+    Config.MODEL_SCALE = 4
+    Config.IMG_WIDTH = 1536
+    Config.IMG_HEIGHT = 512
+    Config.FOCAL_ALPHA = 0.8
+    Config.N_EPOCH = 10
+    Config.MASK_WEIGHT = 1000
+    uncertain_loss = UncertaintyLoss().to(Config.device)
+    Config.USE_MASK = False
+    Config.FOUR_CHANNEL = True
+    model = get_model(Config.model_name)
+    # model.load_state_dict(torch.load('17_model.pth'))
+
+    optimizer = optim.AdamW(model.parameters(), lr=0.0001, weight_decay=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
