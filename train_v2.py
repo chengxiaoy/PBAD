@@ -423,19 +423,41 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
 
-    Config.expriment_id = 18
+    # Config.expriment_id = 18
+    # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
+    # Config.model_name = "basic_b7"
+    # Config.MODEL_SCALE = 8
+    # Config.IMG_WIDTH = 1024
+    # Config.IMG_HEIGHT = 320
+    # Config.FOCAL_ALPHA = 0.75
+    # Config.N_EPOCH = 10
+    # Config.MASK_WEIGHT = 500
+    # uncertain_loss = UncertaintyLoss().to(Config.device)
+    # Config.USE_MASK = True
+    # model = get_model(Config.model_name)
+    # # model.load_state_dict(torch.load('17_model.pth'))
+    #
+    # optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
+    # # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
+    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
+    # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
+    #                  uncertain_loss=uncertain_loss)
+    # predict(model)
+
+
+    Config.expriment_id = 18_1
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_b7"
     Config.MODEL_SCALE = 8
     Config.IMG_WIDTH = 1024
     Config.IMG_HEIGHT = 320
     Config.FOCAL_ALPHA = 0.75
-    Config.N_EPOCH = 10
+    Config.N_EPOCH = 20
     Config.MASK_WEIGHT = 500
     uncertain_loss = UncertaintyLoss().to(Config.device)
     Config.USE_MASK = True
     model = get_model(Config.model_name)
-    # model.load_state_dict(torch.load('17_model.pth'))
+    model.load_state_dict(torch.load('18_model.pth'))
 
     optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
