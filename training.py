@@ -518,7 +518,7 @@ if __name__ == '__main__':
     uncertain_loss = UncertaintyLoss().to(Config.device)
     Config.USE_MASK = True
     model = get_model(Config.model_name)
-    model.load_state_dict(torch.load('19_model.pth'))
+    # model.load_state_dict(torch.load('19_model.pth'))
 
     optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
