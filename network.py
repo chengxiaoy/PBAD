@@ -76,6 +76,8 @@ class MyUNet_7(nn.Module):
 
         self.up1 = Up(3584, 512)
         self.up2 = Up(512 + 512, 256)
+        self.up3 = Up(128 + 256, 256)
+
         self.outc = nn.Conv2d(256, n_classes, 1)
 
     def forward(self, x):
@@ -99,6 +101,8 @@ class MyUNet_7(nn.Module):
 
         x = self.up1(feats, x4)
         x = self.up2(x, x3)
+        x = self.up3(x, x2)
+
         x = self.outc(x)
         return x
 
