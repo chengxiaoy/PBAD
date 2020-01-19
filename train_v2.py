@@ -757,13 +757,13 @@ if __name__ == '__main__':
     # predict(model)
 
 
-    Config.expriment_id = 48_1
+    Config.expriment_id = 48_2
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
-    Config.model_name = "basic_b7"
-    Config.MODEL_SCALE = 8
-    Config.IMG_WIDTH = 1024
-    Config.IMG_HEIGHT = 320
-    Config.FOCAL_ALPHA = 0.75
+    Config.model_name = "basic_4"
+    Config.MODEL_SCALE = 4
+    Config.IMG_WIDTH = 2048
+    Config.IMG_HEIGHT = 768
+    Config.FOCAL_ALPHA = 0.85
     Config.N_EPOCH = 30
     Config.MASK_WEIGHT = 500
     uncertain_loss = UncertaintyLoss().to(Config.device)
