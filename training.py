@@ -545,7 +545,7 @@ if __name__ == '__main__':
 
     uncertain_loss = UncertaintyLoss().to(Config.device)
     params = list(uncertain_loss.parameters()) + list(model.parameters())
-    optimizer = optim.AdamW(params, lr=0.001)
+    optimizer = optim.AdamW(params, lr=0.01)
 
     # optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 
