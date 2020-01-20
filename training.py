@@ -126,7 +126,8 @@ def training(model, optimizer, scheduler, n_epoch, writer, uncertain_loss):
     for epoch in range(n_epoch):
         train_loss = train_model(model, epoch, uncertain_loss, optimizer)
         valid_loss, MAP = evaluate_model(model, uncertain_loss)
-        scheduler.step(MAP)
+        scheduler.step()
+        # scheduler.step(MAP)
 
         writer.add_scalars('data/loss', {'train': train_loss, 'val': valid_loss}, epoch)
         writer.add_scalars('data/map', {'val': MAP}, epoch)
