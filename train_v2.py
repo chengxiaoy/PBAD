@@ -444,7 +444,6 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
 
-
     # Config.expriment_id = 18_2
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     # Config.model_name = "basic_b7"
@@ -486,7 +485,6 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
-
 
     # Config.expriment_id = 30_183
     # Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
@@ -537,7 +535,6 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
 
-
     # Config.expriment_id = 28
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     # Config.model_name = "basic_b7"
@@ -580,7 +577,6 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
-
 
     # Config.expriment_id = 30_19_1
     # Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
@@ -640,7 +636,6 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
 
-
     # Config.expriment_id = 30_186
     # Config.device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
     #
@@ -691,7 +686,6 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
 
-
     # Config.expriment_id = 38_2
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     # Config.model_name = "basic_b7"
@@ -713,7 +707,6 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
 
-
     # Config.expriment_id = 39
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     # Config.model_name = "basic_b2"
@@ -733,7 +726,6 @@ if __name__ == '__main__':
     # model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
-
 
     # Config.expriment_id = 48
     # writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
@@ -756,16 +748,15 @@ if __name__ == '__main__':
     #                  uncertain_loss=uncertain_loss)
     # predict(model)
 
-
-    Config.expriment_id = 48_2
+    Config.expriment_id = 48_3
     writer = SummaryWriter(logdir=os.path.join("board/", str(Config.expriment_id)))
     Config.model_name = "basic_4"
     Config.MODEL_SCALE = 4
     Config.IMG_WIDTH = 2048
     Config.IMG_HEIGHT = 768
     Config.FOCAL_ALPHA = 0.85
-    Config.N_EPOCH = 30
-    Config.MASK_WEIGHT = 500
+    Config.N_EPOCH = 40
+    Config.MASK_WEIGHT = 1000
     uncertain_loss = UncertaintyLoss().to(Config.device)
     Config.USE_MASK = True
     model = get_model(Config.model_name)
@@ -773,16 +764,8 @@ if __name__ == '__main__':
 
     optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
-    lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
+    # lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
+    lr_scheduler = MultiStepLR(optimizer, milestones=[15, 25, 40], gamma=0.1)
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
                      uncertain_loss=uncertain_loss)
     predict(model)
-
-
-
-
-
-
-
-
-
