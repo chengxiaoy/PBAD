@@ -552,7 +552,7 @@ if __name__ == '__main__':
 
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=Config.N_EPOCH * len(train_loader) // 3, gamma=0.1)
     # lr_scheduler = ReduceLROnPlateau(optimizer, mode='max', factor=0.1, patience=3, verbose=True)
-    lr_scheduler = MultiStepLR(optimizer, milestones=[15, 25, 40], gamma=0.1)
+    lr_scheduler = MultiStepLR(optimizer, milestones=[11, 16, 21], gamma=0.1)
 
     model = training(model, optimizer, scheduler=lr_scheduler, n_epoch=Config.N_EPOCH, writer=writer,
                      uncertain_loss=uncertain_loss)
